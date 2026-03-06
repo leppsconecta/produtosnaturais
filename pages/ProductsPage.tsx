@@ -1,10 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, Search, ChevronLeft, ChevronRight, Plus, Minus, X } from 'lucide-react';
-import Navbar from '../../src/components/Navbar';
-import Footer from '../../src/components/Footer';
-import FloatingWhatsApp from '../../src/components/FloatingWhatsApp';
-import { categories, products } from '../data/products';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { useCart } from '../context/CartContext';
 
 const ITEMS_PER_PAGE = 20;
@@ -18,6 +17,19 @@ export default function ProductsPage() {
   const [flyingImage, setFlyingImage] = useState<{ src: string, x: number, y: number } | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
 
+  // Data State
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/categories').then(res => res.json()).then(setCategories).catch(console.error);
+    fetch('/api/products?public=true').then(res => res.json()).then(data => {
+      // Ensure alphabetical order
+      const sorted = data.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      setProducts(sorted);
+    }).catch(console.error);
+  }, []);
+
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
       const matchesCategory = activeCategory === 'todos' || product.category === activeCategory;
@@ -25,7 +37,7 @@ export default function ProductsPage() {
         product.desc.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [products, activeCategory, searchQuery]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const currentProducts = filteredProducts.slice(

@@ -1,10 +1,10 @@
-import Navbar from '../../src/components/Navbar';
-import Hero from '../../src/components/Hero';
-import Products from '../../src/components/Products';
-import Wholesale from '../../src/components/Wholesale';
-import Contact from '../../src/components/Contact';
-import Footer from '../../src/components/Footer';
-import FloatingWhatsApp from '../../src/components/FloatingWhatsApp';
+import Navbar from '../components/Navbar';
+import Hero from '../components/Hero';
+import Products from '../components/Products';
+import Wholesale from '../components/Wholesale';
+import Contact from '../components/Contact';
+import Footer from '../components/Footer';
+import FloatingWhatsApp from '../components/FloatingWhatsApp';
 
 export default function Home() {
   return (

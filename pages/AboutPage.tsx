@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Heart, ShieldCheck, Truck, Users } from 'lucide-react';
-import Navbar from '../../src/components/Navbar';
-import FloatingWhatsApp from '../../src/components/FloatingWhatsApp';
-import Footer from '../../src/components/Footer';
+import Navbar from '../components/Navbar';
+import FloatingWhatsApp from '../components/FloatingWhatsApp';
+import Footer from '../components/Footer';
 
 export default function AboutPage() {
   const features = [

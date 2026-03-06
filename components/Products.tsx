@@ -1,19 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, ArrowRight, Plus, Minus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { categories, products } from '../../produtosnaturais/data/products';
-import { useCart } from '../../produtosnaturais/context/CartContext';
+import { useCart } from '../context/CartContext';
 
 export default function Products() {
-  const [activeCategory, setActiveCategory] = useState('temperos');
   const { addToCart } = useCart();
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
   const [flyingImage, setFlyingImage] = useState<{ src: string, x: number, y: number } | null>(null);
 
-  const filteredProducts = products
-    .filter(p => p.category === activeCategory)
-    .slice(0, 10); // Limit to 10 products
+  // Data State
+  const [products, setProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/products?public=true').then(res => res.json()).then(data => {
+      // Just take 8 random or first products to feature on home page
+      const featured = data.slice(0, 8);
+      setProducts(featured);
+    }).catch(console.error);
+  }, []);
 
   const handleQuantityChange = (id: number, delta: number) => {
     setQuantities(prev => ({
@@ -77,38 +82,17 @@ export default function Products() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-5xl font-bold text-olive-900 mb-4">Nossos Produtos</h2>
+            <h2 className="text-3xl md:text-5xl font-bold text-olive-900 mb-4">Produtos em Destaque</h2>
             <p className="text-lg text-earth-800 max-w-2xl mx-auto">
               Selecionamos os melhores ingredientes da natureza para levar sabor, saúde e bem-estar para o seu dia a dia.
             </p>
           </motion.div>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
-          {categories.map((cat) => {
-            const Icon = cat.icon;
-            const isActive = activeCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 ${isActive
-                  ? 'bg-olive-700 text-white shadow-md scale-105'
-                  : 'bg-white text-earth-800 hover:bg-earth-100 border border-earth-200'
-                  }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-olive-700'}`} />
-                {cat.name}
-              </button>
-            );
-          })}
-        </div>
-
         {/* Product Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
           <AnimatePresence mode="popLayout">
-            {filteredProducts.map((product) => (
+            {products.map((product) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, scale: 0.95 }}
