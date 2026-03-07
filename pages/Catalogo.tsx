@@ -1766,7 +1766,7 @@ const CardapioPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Cardápio</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Catálogo</h1>
           <p className="text-sm text-slate-500">Gerencie os produtos do seu estabelecimento</p>
         </div>
         <div className="flex items-center gap-3">
@@ -1800,7 +1800,7 @@ const CardapioPage: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-medium border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm group"
           >
             <ExternalLink size={16} className="text-slate-400 group-hover:text-indigo-500 transition-colors" />
-            Visualizar
+            Ver Catálogo
           </button>
         </div>
       </div>
@@ -2599,291 +2599,334 @@ const CardapioPage: React.FC = () => {
         }
         maxWidth="max-w-4xl"
         content={
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Coluna Esquerda: Imagem */}
-            <div className="w-full md:w-[320px] shrink-0 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-2">Imagem ou Vídeo do produto</label>
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Coluna Esquerda: Imagem */}
+              <div className="w-full md:w-[320px] shrink-0 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-2">Imagem ou Vídeo do produto</label>
 
-                {/* Hidden file input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
+                  {/* Hidden file input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
 
-                {/* Upload area */}
-                <div
-                  onClick={() => !isUploading && fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl aspect-square flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 cursor-pointer hover:border-indigo-300 transition-all relative overflow-hidden"
-                >
-                  {isUploading ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <Loader2 size={32} className="text-indigo-500 animate-spin" />
-                      <span className="text-xs text-slate-400">Processando...</span>
-                    </div>
-                  ) : formData.foto ? (
-                    <>
-                      {mediaType === 'video' || formData.foto.startsWith('data:video') ? (
-                        <video
-                          src={formData.foto}
-                          className="w-full h-full object-cover rounded-xl"
-                          controls
-                          muted
-                        />
-                      ) : (
-                        <img src={formData.foto} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                      )}
-                      {/* Remove button */}
+                  {/* Upload area */}
+                  <div
+                    onClick={() => !isUploading && fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl aspect-square flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 cursor-pointer hover:border-indigo-300 transition-all relative overflow-hidden"
+                  >
+                    {isUploading ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 size={32} className="text-indigo-500 animate-spin" />
+                        <span className="text-xs text-slate-400">Processando...</span>
+                      </div>
+                    ) : formData.foto ? (
+                      <>
+                        {mediaType === 'video' || formData.foto.startsWith('data:video') ? (
+                          <video
+                            src={formData.foto}
+                            className="w-full h-full object-cover rounded-xl"
+                            controls
+                            muted
+                          />
+                        ) : (
+                          <img src={formData.foto} alt="Preview" className="w-full h-full object-cover rounded-xl" />
+                        )}
+                        {/* Remove button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormData(prev => ({ ...prev, foto: '' }));
+                            setMediaType(null);
+                          }}
+                          className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all"
+                        >
+                          <X size={14} />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={32} className="text-slate-300 mb-2" />
+                        <span className="text-xs text-slate-500 font-medium">Clique para enviar</span>
+                        <span className="text-[10px] text-slate-400 mt-1">Imagem (até 5MB) ou Vídeo (até 50MB, máx 30s)</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Coluna Direita: Informações */}
+              <div className="flex-1 space-y-5">
+                {/* Row 1: Nome do produto e Categoria */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-2">Nome do produto <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      value={formData.nome}
+                      onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                      placeholder="Ex: Coca-Cola 350ml"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-2">Categoria</label>
+                    <select
+                      value={formData.categoria_id}
+                      onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm appearance-none"
+                    >
+                      {categorias
+                        .filter(c => c.tipo !== 'especial')
+                        .map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 2: Descrição */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-2">Descrição</label>
+                  <textarea
+                    value={formData.descricao}
+                    onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                    placeholder="Ingredientes ou detalhes do produto..."
+                    rows={2}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm resize-none"
+                  />
+                </div>
+
+                {/* Row 3: Preços Únicos ou Variações Unificadas */}
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Configuração de Preços</label>
+                    {(formData.variacoes?.length || 0) < 10 && (
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFormData(prev => ({ ...prev, foto: '' }));
-                          setMediaType(null);
+                        type="button"
+                        onClick={() => {
+                          let newVariacoes = [...(formData.variacoes || [])];
+                          // Se não tem variações ainda, a primeira variação assume o preço atual e vira 'Pequena' ou similar
+                          if (newVariacoes.length === 0) {
+                            newVariacoes = [
+                              { nome: 'Pequena', preco: formData.preco },
+                              { nome: 'Média', preco: '' }
+                            ];
+                          } else {
+                            // Determina placeholder baseado na quantidade
+                            const placeholders = ['Pequena', 'Média', 'Grande', 'Extra G', 'Família'];
+                            const nextName = placeholders[newVariacoes.length] || '';
+                            newVariacoes.push({ nome: nextName, preco: '' });
+                          }
+                          setFormData({ ...formData, variacoes: newVariacoes, preco: '' });
                         }}
-                        className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
                       >
-                        <X size={14} />
+                        <Plus size={14} />
+                        + preços
                       </button>
-                    </>
-                  ) : (
-                    <>
-                      <Upload size={32} className="text-slate-300 mb-2" />
-                      <span className="text-xs text-slate-500 font-medium">Clique para enviar</span>
-                      <span className="text-[10px] text-slate-400 mt-1">Imagem (até 5MB) ou Vídeo (até 50MB, máx 30s)</span>
-                    </>
-                  )}
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Se não houver variações, mostra o layout de Valor Único */}
+                    {(!formData.variacoes || formData.variacoes.length === 0) ? (
+                      <div className="flex gap-4 items-end animate-in fade-in duration-300">
+                        <div className="flex-1">
+                          <label className="block text-[10px] font-bold text-slate-400 mb-1">TIPO</label>
+                          <input
+                            type="text"
+                            value="Valor único"
+                            disabled
+                            className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 font-medium cursor-not-allowed"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-[10px] font-bold text-slate-400 mb-1">VALOR (R$)</label>
+                          <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">R$</span>
+                            <input
+                              type="text"
+                              value={formData.preco}
+                              onChange={(e) => setFormData({ ...formData, preco: formatPrice(e.target.value) })}
+                              placeholder="0,00"
+                              className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-bold text-slate-700 dark:text-slate-200"
+                            />
+                          </div>
+                        </div>
+                        {/* Espaçador para alinhar com o botão de excluir das variações */}
+                        <div className="w-10"></div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                        {formData.variacoes.map((variacao, idx) => (
+                          <div key={idx} className="flex gap-3 items-end group">
+                            <div className="flex-1">
+                              {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Variação</label>}
+                              <input
+                                type="text"
+                                placeholder={idx === 0 ? "Pequena" : idx === 1 ? "Média" : "Grande"}
+                                value={variacao.nome}
+                                onChange={(e) => {
+                                  const newVariacoes = [...formData.variacoes!];
+                                  newVariacoes[idx].nome = e.target.value;
+                                  setFormData({ ...formData, variacoes: newVariacoes });
+                                }}
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700 dark:text-slate-200"
+                              />
+                            </div>
+                            <div className="w-32">
+                              {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Preço</label>}
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">R$</span>
+                                <input
+                                  type="text"
+                                  placeholder="0,00"
+                                  value={variacao.preco}
+                                  onChange={(e) => {
+                                    const newVariacoes = [...formData.variacoes!];
+                                    newVariacoes[idx].preco = formatPrice(e.target.value);
+                                    setFormData({ ...formData, variacoes: newVariacoes });
+                                  }}
+                                  className="w-full pl-8 pr-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-slate-700 dark:text-slate-200 text-right"
+                                />
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newVariacoes = formData.variacoes!.filter((_, i) => i !== idx);
+                                // Se ao remover sobrar apenas 1, volta para o estado de preço único?
+                                if (newVariacoes.length <= 1) {
+                                  // Se sobrou uma, recupera o preço dela para o preco principal
+                                  const finalPrice = newVariacoes.length === 1 ? newVariacoes[0].preco : '';
+                                  setFormData({ ...formData, variacoes: [], preco: finalPrice });
+                                } else {
+                                  setFormData({ ...formData, variacoes: newVariacoes });
+                                }
+                              }}
+                              className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                              title="Remover preço"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Coluna Direita: Informações */}
-            <div className="flex-1 space-y-5">
-              {/* Row 1: Nome do produto e Categoria */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">Nome do produto <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    value={formData.nome}
-                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                    placeholder="Ex: Coca-Cola 350ml"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
-                  />
+            {/* Sub-seção: Links Externos - FULL WIDTH */}
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 animate-in fade-in duration-500">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
+                  <ExternalLink size={18} />
+                  <label className="text-sm font-bold block uppercase tracking-wide">Vendas Externas</label>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">Categoria</label>
-                  <select
-                    value={formData.categoria_id}
-                    onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm appearance-none"
-                  >
-                    {categorias
-                      .filter(c => c.tipo !== 'especial')
-                      .map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.nome}</option>
-                      ))}
-                  </select>
-                </div>
+                <p className="text-[11px] text-slate-500 italic">Links de redirecionamento para marketplace. Adicione apenas o que desejar.</p>
               </div>
 
-              {/* Row 2: Descrição */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-2">Descrição</label>
-                <textarea
-                  value={formData.descricao}
-                  onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-                  placeholder="Ingredientes ou detalhes do produto..."
-                  rows={2}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm resize-none"
-                />
+              {/* Platform Toggles */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setShowLinkInputs(prev => ({ ...prev, shopee: !prev.shopee }))}
+                  className={`flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-bold transition-all border shadow-sm ${showLinkInputs.shopee || formData.shopee_link ? 'bg-orange-50 border-orange-200 text-orange-600 ring-2 ring-orange-500/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center font-black text-white text-[10px]">S</div>
+                  Shopee
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLinkInputs(prev => ({ ...prev, mercadolivre: !prev.mercadolivre }))}
+                  className={`flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-bold transition-all border shadow-sm ${showLinkInputs.mercadolivre || formData.mercadolivre_link ? 'bg-yellow-50 border-yellow-200 text-yellow-600 ring-2 ring-yellow-400/20' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center font-black text-slate-900 text-[10px]">M</div>
+                  Mercado Livre
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLinkInputs(prev => ({ ...prev, amazon: !prev.amazon }))}
+                  className={`flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-bold transition-all border shadow-sm ${showLinkInputs.amazon || formData.amazon_link ? 'bg-slate-100 border-slate-300 text-slate-800 ring-2 ring-slate-400/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center font-black text-white text-[10px]">a</div>
+                  Amazon
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLinkInputs(prev => ({ ...prev, aliexpress: !prev.aliexpress }))}
+                  className={`flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-bold transition-all border shadow-sm ${showLinkInputs.aliexpress || formData.aliexpress_link ? 'bg-red-50 border-red-200 text-red-600 ring-2 ring-red-500/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center font-black text-white text-[10px]">Al</div>
+                  AliExpress
+                </button>
               </div>
 
-              {/* Row 3: Preço */}
-              {(!formData.variacoes || formData.variacoes.length === 0) && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">Preço (R$)</label>
-                  <div className="relative md:w-1/2">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R$</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                {/* Shopee */}
+                {(showLinkInputs.shopee || formData.shopee_link) && (
+                  <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="text-[10px] font-bold text-orange-500 uppercase ml-1">Link Shopee</label>
                     <input
-                      type="text"
-                      value={formData.preco}
-                      onChange={(e) => setFormData({ ...formData, preco: formatPrice(e.target.value) })}
-                      placeholder="10,99"
-                      className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-semibold"
+                      type="url"
+                      placeholder="https://shopee.com.br/seu-produto"
+                      value={formData.shopee_link}
+                      onChange={e => setFormData({ ...formData, shopee_link: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-slate-700 shadow-sm"
                     />
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Variações de Preço */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-500 block">Variações de Preço</label>
-                    <p className="text-[10px] text-slate-400">Adicione preços diferentes (ex: P, M, G)</p>
+                {/* Mercado Livre */}
+                {(showLinkInputs.mercadolivre || formData.mercadolivre_link) && (
+                  <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="text-[10px] font-bold text-yellow-600 uppercase ml-1">Link Mercado Livre</label>
+                    <input
+                      type="url"
+                      placeholder="https://produto.mercadolivre.com.br/..."
+                      value={formData.mercadolivre_link}
+                      onChange={e => setFormData({ ...formData, mercadolivre_link: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-white border border-yellow-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400/20 focus:border-yellow-400 text-slate-700 shadow-sm"
+                    />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newVariacoes = [...(formData.variacoes || []), { nome: '', preco: '' }];
-                      setFormData({ ...formData, variacoes: newVariacoes });
-                    }}
-                    className="text-xs flex items-center gap-1 text-indigo-600 font-medium hover:underline"
-                  >
-                    <Plus size={14} />
-                    Adicionar
-                  </button>
-                </div>
+                )}
 
-                {formData.variacoes && formData.variacoes.length > 0 ? (
-                  <div className="space-y-2">
-                    {formData.variacoes.map((variacao, idx) => (
-                      <div key={idx} className="flex gap-2 items-center">
-                        <input
-                          type="text"
-                          placeholder="Nome (ex: Pequena)"
-                          value={variacao.nome}
-                          onChange={(e) => {
-                            const newVariacoes = [...formData.variacoes!];
-                            newVariacoes[idx].nome = e.target.value;
-                            setFormData({ ...formData, variacoes: newVariacoes });
-                          }}
-                          className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500"
-                        />
-                        <div className="relative w-32">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span>
-                          <input
-                            type="text"
-                            placeholder="0,00"
-                            value={variacao.preco}
-                            onChange={(e) => {
-                              const newVariacoes = [...formData.variacoes!];
-                              newVariacoes[idx].preco = formatPrice(e.target.value);
-                              setFormData({ ...formData, variacoes: newVariacoes });
-                            }}
-                            className="w-full pl-8 pr-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newVariacoes = formData.variacoes!.filter((_, i) => i !== idx);
-                            setFormData({ ...formData, variacoes: newVariacoes });
-                          }}
-                          className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    ))}
+                {/* Amazon */}
+                {(showLinkInputs.amazon || formData.amazon_link) && (
+                  <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="text-[10px] font-bold text-slate-600 uppercase ml-1">Link Amazon</label>
+                    <input
+                      type="url"
+                      placeholder="https://www.amazon.com.br/..."
+                      value={formData.amazon_link}
+                      onChange={e => setFormData({ ...formData, amazon_link: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800/10 focus:border-slate-800 text-slate-700 shadow-sm"
+                    />
                   </div>
-                ) : (
-                  <p className="text-xs text-slate-400 italic text-center py-2">Nenhuma variação adicionada</p>
+                )}
+
+                {/* AliExpress */}
+                {(showLinkInputs.aliexpress || formData.aliexpress_link) && (
+                  <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="text-[10px] font-bold text-red-600 uppercase ml-1">Link AliExpress</label>
+                    <input
+                      type="url"
+                      placeholder="https://pt.aliexpress.com/item/..."
+                      value={formData.aliexpress_link}
+                      onChange={e => setFormData({ ...formData, aliexpress_link: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-white border border-red-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-600/10 focus:border-red-600 text-slate-700 shadow-sm"
+                    />
+                  </div>
                 )}
               </div>
-
-              {/* Sub-seção: Links Externos */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl space-y-3 mt-4 border border-slate-100 dark:border-slate-700">
-                <div className="flex items-center gap-2 mb-2 text-indigo-600 dark:text-indigo-400">
-                  <ExternalLink size={16} />
-                  <label className="text-xs font-bold block uppercase tracking-wide">Vendas Externas</label>
-                </div>
-                <p className="text-[10px] text-slate-500 mb-3">Links de redirecionamento para marketplace. Adicione apenas o que desejar.</p>
-
-                {/* Platform Toggles */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowLinkInputs(prev => ({ ...prev, shopee: !prev.shopee }))}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${showLinkInputs.shopee || formData.shopee_link ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 text-orange-600 dark:text-orange-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
-                  >
-                    <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center font-bold text-white text-[10px]">S</div>
-                    Shopee
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowLinkInputs(prev => ({ ...prev, mercadolivre: !prev.mercadolivre }))}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${showLinkInputs.mercadolivre || formData.mercadolivre_link ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 text-yellow-600 dark:text-yellow-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
-                  >
-                    <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-slate-900 text-[10px]">M</div>
-                    Mercado Livre
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowLinkInputs(prev => ({ ...prev, amazon: !prev.amazon }))}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${showLinkInputs.amazon || formData.amazon_link ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 text-slate-800 dark:text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
-                  >
-                    <div className="w-5 h-5 rounded-full bg-slate-800 dark:bg-slate-200 flex items-center justify-center font-bold text-white dark:text-slate-900 text-[10px]">a</div>
-                    Amazon
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowLinkInputs(prev => ({ ...prev, aliexpress: !prev.aliexpress }))}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${showLinkInputs.aliexpress || formData.aliexpress_link ? 'bg-red-50 dark:bg-red-900/20 border-red-200 text-red-600 dark:text-red-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
-                  >
-                    <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center font-bold text-white text-[10px]">Al</div>
-                    AliExpress
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  {/* Shopee */}
-                  {(showLinkInputs.shopee || formData.shopee_link) && (
-                    <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-2">
-                      <input
-                        type="url"
-                        placeholder="https://shopee.com.br/seu-produto"
-                        value={formData.shopee_link}
-                        onChange={e => setFormData({ ...formData, shopee_link: e.target.value })}
-                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-orange-200 dark:border-orange-500/30 rounded-lg text-sm outline-none focus:ring-1 focus:ring-orange-500 text-slate-900 dark:text-gray-100"
-                      />
-                    </div>
-                  )}
-
-                  {/* Mercado Livre */}
-                  {(showLinkInputs.mercadolivre || formData.mercadolivre_link) && (
-                    <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-2">
-                      <input
-                        type="url"
-                        placeholder="https://produto.mercadolivre.com.br/..."
-                        value={formData.mercadolivre_link}
-                        onChange={e => setFormData({ ...formData, mercadolivre_link: e.target.value })}
-                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-yellow-200 dark:border-yellow-500/30 rounded-lg text-sm outline-none focus:ring-1 focus:ring-yellow-400 text-slate-900 dark:text-gray-100"
-                      />
-                    </div>
-                  )}
-
-                  {/* Amazon */}
-                  {(showLinkInputs.amazon || formData.amazon_link) && (
-                    <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-2">
-                      <input
-                        type="url"
-                        placeholder="https://www.amazon.com.br/..."
-                        value={formData.amazon_link}
-                        onChange={e => setFormData({ ...formData, amazon_link: e.target.value })}
-                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none focus:ring-1 focus:ring-slate-800 dark:focus:ring-white text-slate-900 dark:text-gray-100"
-                      />
-                    </div>
-                  )}
-
-                  {/* AliExpress */}
-                  {(showLinkInputs.aliexpress || formData.aliexpress_link) && (
-                    <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-2">
-                      <input
-                        type="url"
-                        placeholder="https://pt.aliexpress.com/item/..."
-                        value={formData.aliexpress_link}
-                        onChange={e => setFormData({ ...formData, aliexpress_link: e.target.value })}
-                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-500/30 rounded-lg text-sm outline-none focus:ring-1 focus:ring-red-600 text-slate-900 dark:text-gray-100"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
             </div>
           </div>
         }
@@ -2893,31 +2936,30 @@ const CardapioPage: React.FC = () => {
       />
 
       {/* Toast Notification */}
-      {
-        toast.visible && (
-          <div className="fixed bottom-6 right-6 z-[150] animate-in slide-in-from-bottom-5 duration-300">
-            <div className={`
+      {toast.visible && (
+        <div className="fixed bottom-6 right-6 z-[150] animate-in slide-in-from-bottom-5 duration-300">
+          <div className={`
             flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border
             ${toast.type === 'success' ? 'bg-white dark:bg-slate-800 border-emerald-500 text-emerald-600' : ''}
             ${toast.type === 'error' ? 'bg-white dark:bg-slate-800 border-red-500 text-red-600' : ''}
             ${toast.type === 'info' ? 'bg-white dark:bg-slate-800 border-blue-500 text-blue-600' : ''}
           `}>
-              {toast.type === 'success' && <CheckCircle size={24} className="fill-current" />}
-              {toast.type === 'error' && <AlertTriangle size={24} className="fill-current" />}
-              {toast.type === 'info' && <Info size={24} className="fill-current" />}
-              <div>
-                <p className="font-bold text-sm text-slate-900 dark:text-white">{toast.type === 'success' ? 'Sucesso' : toast.type === 'error' ? 'Erro' : 'Informação'}</p>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{toast.message}</p>
-              </div>
-              <button
-                onClick={() => setToast(prev => ({ ...prev, visible: false }))}
-                className="ml-4 p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors"
-              >
-                <X size={16} className="text-slate-400" />
-              </button>
+            {toast.type === 'success' && <CheckCircle size={24} className="fill-current" />}
+            {toast.type === 'error' && <AlertTriangle size={24} className="fill-current" />}
+            {toast.type === 'info' && <Info size={24} className="fill-current" />}
+            <div>
+              <p className="font-bold text-sm text-slate-900 dark:text-white">{toast.type === 'success' ? 'Sucesso' : toast.type === 'error' ? 'Erro' : 'Informação'}</p>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{toast.message}</p>
             </div>
+            <button
+              onClick={() => setToast(prev => ({ ...prev, visible: false }))}
+              className="ml-4 p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors"
+            >
+              <X size={16} className="text-slate-400" />
+            </button>
           </div>
-        )
+        </div>
+      )
       }
       {/* Combo Modal - Two Column Layout */}
       {

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, Search, ChevronLeft, ChevronRight, Plus, Minus, X } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Search, ChevronLeft, ChevronRight, Plus, Minus, X, Trash2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
@@ -12,7 +12,7 @@ export default function ProductsPage() {
   const [activeCategory, setActiveCategory] = useState('todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const { addToCart } = useCart();
+  const { addToCart, removeFromCart, cart } = useCart();
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
   const [flyingImage, setFlyingImage] = useState<{ src: string, x: number, y: number } | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
@@ -26,7 +26,20 @@ export default function ProductsPage() {
     fetch('/api/products?public=true').then(res => res.json()).then(data => {
       // Ensure alphabetical order
       const sorted = data.sort((a: any, b: any) => a.name.localeCompare(b.name));
-      setProducts(sorted);
+
+      // MOCK DATA for external sources
+      const mocked = sorted.map((p: any, idx: number) => {
+        // Mock combinations for demonstration
+        if (idx === 0) return { ...p, shopee_link: 'https://shopee.com.br' };
+        if (idx === 1) return { ...p, shopee_link: 'https://shopee.com.br', mercadolivre_link: 'https://mercadolivre.com.br' };
+        if (idx === 2) return { ...p, shopee_link: 'https://shopee.com.br', mercadolivre_link: 'https://mercadolivre.com.br', amazon_link: 'https://amazon.com.br' };
+        if (idx === 3) return { ...p, shopee_link: 'https://shopee.com.br', mercadolivre_link: 'https://mercadolivre.com.br', amazon_link: 'https://amazon.com.br', aliexpress_link: 'https://aliexpress.com' };
+        // Example with just one different link
+        if (idx === 4) return { ...p, amazon_link: 'https://amazon.com.br' };
+        return p;
+      });
+
+      setProducts(mocked);
     }).catch(console.error);
   }, []);
 
@@ -52,6 +65,111 @@ export default function ProductsPage() {
     }
   };
 
+  const ExternalLinkIcons = ({ product, isBig = false }: { product: any, isBig?: boolean }) => {
+    const [showDropdown, setShowDropdown] = useState(false);
+    const links = [
+      { id: 'shopee', url: product.shopee_link, color: '#EE4D2D', label: 'Shopee', icon: 'S' },
+      { id: 'mercadolivre', url: product.mercadolivre_link, color: '#FFE600', textColor: '#2D3277', label: 'Mercado Livre', icon: 'M' },
+      { id: 'amazon', url: product.amazon_link, color: '#000000', label: 'Amazon', icon: 'A' },
+      { id: 'aliexpress', url: product.aliexpress_link, color: '#E62E04', label: 'AliExpress', icon: 'al' },
+    ].filter(l => l.url);
+
+    if (links.length === 0) return null;
+
+    const firstLink = links[0];
+    const otherLinks = links.slice(1);
+
+    return (
+      <div className="relative">
+        {/* Desktop View: Show all icons */}
+        <div className="hidden md:flex items-center gap-2">
+          {links.map(link => (
+            <a
+              key={link.id}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={link.label}
+              className="flex items-center justify-center rounded-xl transition-transform hover:scale-105 shadow-sm border border-black/5 flex-shrink-0"
+              style={{
+                backgroundColor: link.color,
+                width: isBig ? '56px' : '40px',
+                height: isBig ? '56px' : '40px',
+                color: link.textColor || 'white'
+              }}
+            >
+              <span className={`font-black uppercase ${isBig ? 'text-2xl' : 'text-sm'}`}>{link.icon}</span>
+            </a>
+          ))}
+        </div>
+
+        {/* Mobile View: Show only first link + toggle for others */}
+        <div className="md:hidden">
+          <button
+            onClick={() => {
+              if (otherLinks.length > 0) {
+                setShowDropdown(!showDropdown);
+              } else {
+                window.open(firstLink.url, '_blank', 'noopener,noreferrer');
+              }
+            }}
+            className="flex items-center justify-center rounded-xl shadow-sm border border-black/5 flex-shrink-0"
+            style={{
+              backgroundColor: firstLink.color,
+              width: '40px',
+              height: '40px',
+              color: firstLink.textColor || 'white'
+            }}
+          >
+            <span className="font-black uppercase text-sm">{firstLink.icon}</span>
+            {otherLinks.length > 0 && (
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white" />
+            )}
+          </button>
+
+          <AnimatePresence>
+            {showDropdown && otherLinks.length > 0 && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowDropdown(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-white rounded-2xl shadow-2xl z-50 border border-earth-100 flex flex-col gap-1 min-w-[170px] max-w-[90vw]"
+                >
+                  <div className="text-[10px] font-bold text-earth-400 px-3 uppercase mb-1 border-b border-earth-50 pb-1">Onde comprar:</div>
+                  {links.map(link => (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setShowDropdown(false)}
+                      className={`flex items-center gap-3 p-2.5 hover:bg-earth-50 rounded-xl transition-colors ${link.id === firstLink.id ? 'bg-earth-50/50' : ''}`}
+                    >
+                      <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-black shadow-sm"
+                        style={{ backgroundColor: link.color, color: link.textColor || 'white' }}
+                      >
+                        {link.icon}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-olive-900 leading-tight">{link.label}</span>
+                      </div>
+                    </a>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    );
+  };
+
   const handleQuantityChange = (id: number, delta: number) => {
     setQuantities(prev => ({
       ...prev,
@@ -60,15 +178,15 @@ export default function ProductsPage() {
   };
 
   const handleAddToCart = (product: any, e: React.MouseEvent) => {
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    setFlyingImage({ src: product.img, x: rect.left, y: rect.top });
-
     const quantity = quantities[product.id] || 1;
     addToCart(product, quantity);
+
     // Reset quantity after adding
     setQuantities(prev => ({ ...prev, [product.id]: 1 }));
+  };
 
-    setTimeout(() => setFlyingImage(null), 1000);
+  const isInCart = (productId: number) => {
+    return cart.some(item => item.id === productId);
   };
 
   const handleOpenModal = (product: any) => {
@@ -97,34 +215,7 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen font-sans text-earth-800 selection:bg-mustard-500/30 selection:text-olive-900 bg-offwhite">
-      {/* Flying Image Animation */}
-      <AnimatePresence>
-        {flyingImage && (
-          <motion.img
-            src={flyingImage.src}
-            initial={{
-              position: 'fixed',
-              top: flyingImage.y,
-              left: flyingImage.x,
-              width: 60,
-              height: 60,
-              opacity: 1,
-              zIndex: 9999,
-              borderRadius: '50%',
-              objectFit: 'cover'
-            }}
-            animate={{
-              top: 20,
-              left: window.innerWidth - 60, // Approximate cart position
-              width: 20,
-              height: 20,
-              opacity: 0
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-          />
-        )}
-      </AnimatePresence>
+      {/* Navigation Buttons */}
 
       {/* Product Modal */}
       <AnimatePresence>
@@ -148,21 +239,20 @@ export default function ProductsPage() {
                 <X className="w-6 h-6 text-olive-900" />
               </button>
 
-              {/* Navigation Buttons */}
-              <button
-                onClick={handlePrevProduct}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-md hidden md:block"
-              >
-                <ChevronLeft className="w-6 h-6 text-olive-900" />
-              </button>
-              <button
-                onClick={handleNextProduct}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-md hidden md:block"
-              >
-                <ChevronRight className="w-6 h-6 text-olive-900" />
-              </button>
-
-              <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-earth-100">
+              <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-earth-100 overflow-hidden">
+                {/* Navigation Buttons */}
+                <button
+                  onClick={handlePrevProduct}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/60 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm md:shadow-md"
+                >
+                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-olive-900" />
+                </button>
+                <button
+                  onClick={handleNextProduct}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/60 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm md:shadow-md"
+                >
+                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-olive-900" />
+                </button>
                 <img
                   src={selectedProduct.img}
                   alt={selectedProduct.name}
@@ -205,32 +295,41 @@ export default function ProductsPage() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={(e) => {
-                      handleAddToCart(selectedProduct, e);
-                      handleCloseModal();
-                    }}
-                    className="flex items-center justify-center gap-2 w-full py-4 px-6 bg-mustard-500 hover:bg-mustard-600 text-olive-900 rounded-xl text-lg font-bold transition-colors shadow-lg hover:shadow-xl"
-                  >
-                    <ShoppingBag className="w-5 h-5" />
-                    Adicionar ao Carrinho
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {(() => {
+                      const marketplaceLinks = [selectedProduct.shopee_link, selectedProduct.mercadolivre_link, selectedProduct.amazon_link, selectedProduct.aliexpress_link].filter(Boolean);
+                      const numLinks = marketplaceLinks.length;
 
-                  {/* Mobile Navigation */}
-                  <div className="flex justify-between mt-6 md:hidden">
-                    <button
-                      onClick={handlePrevProduct}
-                      className="flex items-center gap-2 text-earth-600 hover:text-olive-900 font-medium"
-                    >
-                      <ChevronLeft className="w-4 h-4" /> Anterior
-                    </button>
-                    <button
-                      onClick={handleNextProduct}
-                      className="flex items-center gap-2 text-earth-600 hover:text-olive-900 font-medium"
-                    >
-                      Próximo <ChevronRight className="w-4 h-4" />
-                    </button>
+                      return (
+                        <>
+                          {!isInCart(selectedProduct.id) && <ExternalLinkIcons product={selectedProduct} isBig />}
+
+                          <button
+                            onClick={(e) => {
+                              if (isInCart(selectedProduct.id)) {
+                                removeFromCart(selectedProduct.id);
+                              } else {
+                                handleAddToCart(selectedProduct, e);
+                              }
+                            }}
+                            className={`flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl group font-bold ${numLinks > 0 && !isInCart(selectedProduct.id)
+                              ? 'w-[56px] h-[56px] md:flex-grow md:h-auto md:py-4 md:px-6'
+                              : 'flex-grow py-4 px-6'
+                              } rounded-xl text-lg ${isInCart(selectedProduct.id)
+                                ? 'bg-red-500 hover:bg-red-600 text-white'
+                                : 'bg-mustard-500 hover:bg-mustard-600 text-olive-900'
+                              }`}
+                          >
+                            {isInCart(selectedProduct.id) ? <Trash2 className="w-6 h-6" /> : <ShoppingCart className="w-6 h-6" />}
+                            <span className={`${(numLinks > 0 && !isInCart(selectedProduct.id)) ? 'hidden md:inline' : 'inline'}`}>
+                              {isInCart(selectedProduct.id) ? 'Remover' : 'Adicionar ao Carrinho'}
+                            </span>
+                          </button>
+                        </>
+                      );
+                    })()}
                   </div>
+
                 </div>
               </div>
             </motion.div>
@@ -240,21 +339,14 @@ export default function ProductsPage() {
 
       <Navbar />
 
-      <main className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <p className="text-lg text-earth-800 max-w-2xl mx-auto">
-            Selecionamos os melhores ingredientes da natureza para levar sabor, saúde e bem-estar para o seu dia a dia
-          </p>
-        </div>
-
-        {/* Search and Filter */}
-        <div className="flex flex-col md:flex-row gap-6 mb-12 items-center justify-between">
-
-          {/* Categories */}
-          <div className="flex flex-wrap justify-center gap-2">
+      {/* Search and Filter - Fixed Sub-Header */}
+      <div className="fixed top-[64px] left-0 right-0 z-40 bg-offwhite border-b border-earth-100 shadow-sm transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row gap-4 md:gap-6 items-center justify-between">
+          {/* Categories - Horizontal Scroll on Mobile */}
+          <div className="flex flex-nowrap justify-start items-center gap-2 overflow-x-auto pb-2 -mx-2 px-2 max-w-full scrollbar-hide no-scrollbar flex-grow">
             <button
               onClick={() => { setActiveCategory('todos'); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === 'todos'
+              className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${activeCategory === 'todos'
                 ? 'bg-olive-900 text-white shadow-md'
                 : 'bg-white text-earth-800 hover:bg-earth-100 border border-earth-200'
                 }`}
@@ -265,7 +357,7 @@ export default function ProductsPage() {
               <button
                 key={cat.id}
                 onClick={() => { setActiveCategory(cat.id); setCurrentPage(1); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === cat.id
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${activeCategory === cat.id
                   ? 'bg-olive-700 text-white shadow-md'
                   : 'bg-white text-earth-800 hover:bg-earth-100 border border-earth-200'
                   }`}
@@ -276,7 +368,7 @@ export default function ProductsPage() {
           </div>
 
           {/* Search */}
-          <div className="relative w-full md:w-72">
+          <div className="relative w-full md:w-72 flex-shrink-0">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-earth-400" />
             </div>
@@ -289,6 +381,9 @@ export default function ProductsPage() {
             />
           </div>
         </div>
+      </div>
+
+      <main className="pt-[210px] md:pt-[150px] pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
 
         {/* Product Grid */}
         {currentProducts.length > 0 ? (
@@ -302,9 +397,15 @@ export default function ProductsPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2 }}
-                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-earth-100 flex flex-col h-full"
+                  className="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-earth-100 flex flex-col h-full relative"
                 >
-                  <div className="relative h-32 md:h-48 overflow-hidden">
+                  <div className="relative h-32 md:h-48 overflow-hidden rounded-t-[15px]">
+                    {isInCart(product.id) && (
+                      <div className="absolute top-2 left-2 z-10 bg-olive-900/90 text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-lg flex items-center gap-1">
+                        <ShoppingBag size={10} className="text-mustard-400" />
+                        NO CARRINHO
+                      </div>
+                    )}
                     <img
                       src={product.img}
                       alt={product.name}
@@ -321,14 +422,16 @@ export default function ProductsPage() {
                         {categories.find(c => c.id === product.category)?.name}
                       </span>
                     </div>
-                    <h3 className="text-base md:text-xl font-bold text-olive-900 mb-1 md:mb-2 line-clamp-2">{product.name}</h3>
-                    <p className="text-earth-800 text-xs md:text-sm mb-2 line-clamp-2">{product.desc}</p>
-                    <button
-                      onClick={() => handleOpenModal(product)}
-                      className="text-xs text-mustard-600 font-bold hover:underline mb-4 text-left"
-                    >
-                      Ver mais
-                    </button>
+                    <div className="flex-grow">
+                      <h3 className="text-base md:text-xl font-bold text-olive-900 mb-1 md:mb-2 line-clamp-2">{product.name}</h3>
+                      <p className="text-earth-800 text-xs md:text-sm mb-2 line-clamp-2">{product.desc}</p>
+                      <button
+                        onClick={() => handleOpenModal(product)}
+                        className="text-xs text-mustard-600 font-bold hover:underline mb-4 text-left"
+                      >
+                        Ver mais
+                      </button>
+                    </div>
 
                     <div className="space-y-3">
                       <div className="flex items-center justify-center gap-3 bg-earth-50 rounded-lg p-1">
@@ -347,13 +450,39 @@ export default function ProductsPage() {
                         </button>
                       </div>
 
-                      <button
-                        onClick={(e) => handleAddToCart(product, e)}
-                        className="flex items-center justify-center gap-2 w-full py-2 md:py-3 px-3 md:px-4 bg-mustard-500 hover:bg-mustard-600 text-olive-900 rounded-xl text-xs md:text-sm font-bold transition-colors shadow-md hover:shadow-lg"
-                      >
-                        <ShoppingBag className="w-3 h-3 md:w-4 md:h-4" />
-                        Adicionar
-                      </button>
+                      {(() => {
+                        const marketplaceLinks = [product.shopee_link, product.mercadolivre_link, product.amazon_link, product.aliexpress_link].filter(Boolean);
+                        const numLinks = marketplaceLinks.length;
+
+                        return (
+                          <div className="flex items-center justify-center gap-1.5 md:gap-2 w-full">
+                            {!isInCart(product.id) && <ExternalLinkIcons product={product} />}
+
+                            <button
+                              onClick={(e) => {
+                                if (isInCart(product.id)) {
+                                  removeFromCart(product.id);
+                                } else {
+                                  handleAddToCart(product, e);
+                                }
+                              }}
+                              title={isInCart(product.id) ? 'Remover do Carrinho' : 'Adicionar ao Carrinho'}
+                              className={`flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md rounded-xl font-bold h-10 md:h-[40px] ${(numLinks > 0 && !isInCart(product.id))
+                                  ? (numLinks < 3 ? 'flex-grow min-w-[100px] px-2' : 'w-10 md:w-[40px] flex-shrink-0')
+                                  : 'flex-grow min-w-[100px] px-4'
+                                } ${isInCart(product.id)
+                                  ? 'bg-red-500 text-white hover:bg-red-600'
+                                  : 'bg-mustard-500 hover:bg-mustard-600 text-olive-900 border border-mustard-600/10'
+                                }`}
+                            >
+                              {isInCart(product.id) ? <Trash2 className="w-4 h-4 md:w-5 md:h-5" /> : <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />}
+                              <span className={`${(numLinks >= 3 && !isInCart(product.id)) ? 'hidden' : 'inline'}`}>
+                                {isInCart(product.id) ? 'Remover' : 'Adicionar'}
+                              </span>
+                            </button>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </motion.div>

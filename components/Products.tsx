@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, ArrowRight, Plus, Minus } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Plus, Minus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 export default function Products() {
-  const { addToCart } = useCart();
+  const { addToCart, removeFromCart, cart } = useCart();
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
-  const [flyingImage, setFlyingImage] = useState<{ src: string, x: number, y: number } | null>(null);
 
   // Data State
   const [products, setProducts] = useState<any[]>([]);
@@ -28,47 +27,20 @@ export default function Products() {
   };
 
   const handleAddToCart = (product: any, e: React.MouseEvent) => {
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    setFlyingImage({ src: product.img, x: rect.left, y: rect.top });
-
     const quantity = quantities[product.id] || 1;
     addToCart(product, quantity);
+
     // Reset quantity after adding
     setQuantities(prev => ({ ...prev, [product.id]: 1 }));
+  };
 
-    setTimeout(() => setFlyingImage(null), 1000);
+  const isInCart = (productId: number) => {
+    return cart.some(item => item.id === productId);
   };
 
   return (
     <section id="produtos" className="py-24 relative">
-      {/* Flying Image Animation */}
-      <AnimatePresence>
-        {flyingImage && (
-          <motion.img
-            src={flyingImage.src}
-            initial={{
-              position: 'fixed',
-              top: flyingImage.y,
-              left: flyingImage.x,
-              width: 60,
-              height: 60,
-              opacity: 1,
-              zIndex: 9999,
-              borderRadius: '50%',
-              objectFit: 'cover'
-            }}
-            animate={{
-              top: 20,
-              left: window.innerWidth - 60, // Approximate cart position
-              width: 20,
-              height: 20,
-              opacity: 0
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-          />
-        )}
-      </AnimatePresence>
+      {/* Decorative elements */}
 
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-olive-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
@@ -83,9 +55,7 @@ export default function Products() {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-3xl md:text-5xl font-bold text-olive-900 mb-4">Produtos em Destaque</h2>
-            <p className="text-lg text-earth-800 max-w-2xl mx-auto">
-              Selecionamos os melhores ingredientes da natureza para levar sabor, saúde e bem-estar para o seu dia a dia.
-            </p>
+
           </motion.div>
         </div>
 
@@ -103,6 +73,12 @@ export default function Products() {
                 className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-earth-100 flex flex-col h-full"
               >
                 <div className="relative h-32 md:h-48 overflow-hidden">
+                  {isInCart(product.id) && (
+                    <div className="absolute top-2 left-2 z-10 bg-olive-900/90 text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-lg flex items-center gap-1">
+                      <ShoppingBag size={10} className="text-mustard-400" />
+                      NO CARRINHO
+                    </div>
+                  )}
                   <img
                     src={product.img}
                     alt={product.name}
@@ -114,8 +90,10 @@ export default function Products() {
                   </div>
                 </div>
                 <div className="p-4 md:p-6 flex flex-col flex-grow">
-                  <h3 className="text-base md:text-xl font-bold text-olive-900 mb-1 md:mb-2 line-clamp-2">{product.name}</h3>
-                  <p className="text-earth-800 text-xs md:text-sm mb-4 md:mb-6 flex-grow line-clamp-3">{product.desc}</p>
+                  <div className="flex-grow">
+                    <h3 className="text-base md:text-xl font-bold text-olive-900 mb-1 md:mb-2 line-clamp-2">{product.name}</h3>
+                    <p className="text-earth-800 text-xs md:text-sm mb-4 md:mb-6 line-clamp-3">{product.desc}</p>
+                  </div>
 
                   <div className="mt-auto space-y-3">
                     <div className="flex items-center justify-center gap-3 bg-earth-50 rounded-lg p-1">
@@ -135,11 +113,20 @@ export default function Products() {
                     </div>
 
                     <button
-                      onClick={(e) => handleAddToCart(product, e)}
-                      className="flex items-center justify-center gap-2 w-full py-2 md:py-3 px-3 md:px-4 bg-mustard-500 hover:bg-mustard-600 text-olive-900 rounded-xl text-xs md:text-sm font-bold transition-colors shadow-md hover:shadow-lg"
+                      onClick={(e) => {
+                        if (isInCart(product.id)) {
+                          removeFromCart(product.id);
+                        } else {
+                          handleAddToCart(product, e);
+                        }
+                      }}
+                      className={`flex items-center justify-center gap-2 w-full py-2 md:py-3 px-3 md:px-4 rounded-xl text-xs md:text-sm font-bold transition-all shadow-md hover:shadow-lg ${isInCart(product.id)
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-mustard-500 hover:bg-mustard-600 text-olive-900'
+                        }`}
                     >
-                      <ShoppingBag className="w-3 h-3 md:w-4 md:h-4" />
-                      Adicionar
+                      {isInCart(product.id) ? <Trash2 className="w-3 h-3 md:w-4 md:h-4" /> : <ShoppingBag className="w-3 h-3 md:w-4 md:h-4" />}
+                      {isInCart(product.id) ? 'Remover' : 'Adicionar'}
                     </button>
                   </div>
                 </div>

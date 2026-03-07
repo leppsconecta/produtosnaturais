@@ -9,7 +9,7 @@ export default function AdminLayout() {
 
     const links = [
         { label: 'Dashboard', path: AppRoute.DASHBOARD, icon: <LayoutDashboard className="w-5 h-5" /> },
-        { label: 'Produtos', path: AppRoute.PRODUCTS, icon: <Package className="w-5 h-5" /> },
+        { label: 'Catálogo', path: AppRoute.PRODUCTS, icon: <Package className="w-5 h-5" /> },
         { label: 'Feedbacks', path: AppRoute.FEEDBACKS, icon: <MessageSquare className="w-5 h-5" /> },
         { label: 'Funcionários', path: AppRoute.FUNCIONARIOS, icon: <Users className="w-5 h-5" /> },
         { label: 'Currículos', path: AppRoute.CURRICULOS, icon: <FileText className="w-5 h-5" /> },

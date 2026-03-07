@@ -8,7 +8,7 @@ import AdminLogin from './pages/AdminLogin';
 import DashboardPage from './pages/Dashboard';
 import FeedbacksPage from './pages/Feedbacks';
 import FuncionariosPage from './pages/Funcionarios';
-import CardapioPage from './pages/Cardapio';
+import CatalogoPage from './pages/Catalogo';
 import EscalaPage from './pages/Escala';
 import FichaTecnicaPage from './pages/FichaTecnica';
 import CurriculosPage from './pages/Curriculos';
@@ -50,7 +50,7 @@ export default function App() {
               {/* Admin Routes */}
               <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
                 <Route index element={<DashboardPage />} />
-                <Route path="produtos" element={<CardapioPage />} />
+                <Route path="produtos" element={<CatalogoPage />} />
                 <Route path="feedbacks" element={<FeedbacksPage />} />
                 <Route path="funcionarios" element={<FuncionariosPage />} />
                 <Route path="escala" element={<EscalaPage />} />

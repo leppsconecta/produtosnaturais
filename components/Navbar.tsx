@@ -17,7 +17,9 @@ export default function Navbar() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+      if (location.pathname === '/produtos') {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false); // Scrolling down
       } else {
         setIsVisible(true); // Scrolling up
@@ -52,7 +54,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 bg-[#5A1788] shadow-md py-3 ${isVisible ? 'translate-y-0' : '-translate-y-0 md:-translate-y-full'
+      className={`fixed top-0 left-0 right-0 z-[60] transition-transform duration-300 bg-[#5A1788] shadow-md py-3 ${isVisible ? 'translate-y-0' : '-translate-y-0 md:-translate-y-full'
         }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
