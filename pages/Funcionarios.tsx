@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Plus, Share2, Eye, Edit3, Trash2, Briefcase, User, CreditCard, RefreshCw, Upload, MapPin, FileText, Check, Copy, Settings, Search, ChevronDown
+  Plus, Share2, Eye, Edit3, Trash2, Briefcase, User, CreditCard, Upload, MapPin, FileText, Check, Copy, Settings, Search, ChevronDown
 } from 'lucide-react';
 import Table, { Column } from '../components/UI/Table';
 import Modal from '../components/UI/Modal';
-import RoleManager from '../components/RoleManager';
+import CargoManager from '../components/CargoManager';
 
 import { Funcionario, ModalType, AppRoute } from '../types';
 import { supabase } from '../lib/supabase';
 
 const FuncionarioDetailsView: React.FC<{ data: Funcionario }> = ({ data }) => {
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [pixCopiado, setPixCopiado] = useState(false);
+
+  const copiarPix = () => {
+    if (!data.pixChave) return;
+    navigator.clipboard.writeText(data.pixChave);
+    setPixCopiado(true);
+    setTimeout(() => setPixCopiado(false), 2000);
+  };
 
   const sectionTitle = "text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-2";
   const itemClass = "bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800";
@@ -21,15 +29,14 @@ const FuncionarioDetailsView: React.FC<{ data: Funcionario }> = ({ data }) => {
     setDownloading(type);
     try {
       const { data: result, error } = await supabase
-        .schema('gestaohashi')
-        .from('equipe')
-        .select(type === 'front' ? 'document_front' : 'document_back')
+        .from('funcionarios')
+        .select(type === 'front' ? 'documento_frente_url' : 'documento_verso_url')
         .eq('id', data.id)
         .single();
 
       if (error) throw error;
 
-      const content = type === 'front' ? (result as any)?.document_front : (result as any)?.document_back;
+      const content = type === 'front' ? (result as any)?.documento_frente_url : (result as any)?.documento_verso_url;
       if (!content) return alert('Arquivo não encontrado.');
 
       const link = document.createElement('a');
@@ -60,6 +67,7 @@ const FuncionarioDetailsView: React.FC<{ data: Funcionario }> = ({ data }) => {
             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${data.status === 'Ativo' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
               }`}>{data.status}</span>
             <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold uppercase tracking-wider">{data.tipoContrato}</span>
+            <span className="px-2 py-0.5 bg-slate-50 text-slate-400 rounded text-[10px] font-bold uppercase tracking-wider">Cadastrado em: {data.dataCadastro}</span>
           </div>
         </div>
       </div>
@@ -107,7 +115,14 @@ const FuncionarioDetailsView: React.FC<{ data: Funcionario }> = ({ data }) => {
                 <p className={labelClass}>Pix ({data.pixTipo})</p>
                 <div className="flex items-center justify-between">
                   <p className={valueClass}>{data.pixChave || '-'}</p>
-                  {data.pixChave && <Copy size={12} className="text-slate-400 cursor-pointer hover:text-indigo-600" onClick={() => navigator.clipboard.writeText(data.pixChave)} />}
+                  {data.pixChave && (
+                    <Copy
+                      size={12}
+                      className={`cursor-pointer transition-colors ${pixCopiado ? 'text-emerald-500' : 'text-slate-400 hover:text-indigo-600'}`}
+                      onClick={copiarPix}
+                      title={pixCopiado ? 'Copiado!' : 'Copiar chave PIX'}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -130,24 +145,26 @@ const FuncionarioDetailsView: React.FC<{ data: Funcionario }> = ({ data }) => {
         {(data.documentoFrente || data.documentoVerso) ? (
           <div className="flex gap-3">
             {data.documentoFrente && (
-              <button
-                onClick={() => fetchAndDownload('front')}
-                disabled={downloading === 'front'}
-                className="flex-1 flex items-center justify-center gap-2 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-100 transition-all active:scale-95 disabled:opacity-50"
+              <a
+                href={data.documentoFrente}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-100 transition-all active:scale-95"
               >
-                {downloading === 'front' ? <RefreshCw size={18} className="animate-spin" /> : <Upload size={18} className="rotate-180" />}
-                <span className="font-bold text-xs uppercase">Baixar Frente</span>
-              </button>
+                <Upload size={18} className="rotate-180" />
+                <span className="font-bold text-xs uppercase">Ver Frente</span>
+              </a>
             )}
             {data.documentoVerso && (
-              <button
-                onClick={() => fetchAndDownload('back')}
-                disabled={downloading === 'back'}
-                className="flex-1 flex items-center justify-center gap-2 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-100 transition-all active:scale-95 disabled:opacity-50"
+              <a
+                href={data.documentoVerso}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg border border-indigo-100 transition-all active:scale-95"
               >
-                {downloading === 'back' ? <RefreshCw size={18} className="animate-spin" /> : <Upload size={18} className="rotate-180" />}
-                <span className="font-bold text-xs uppercase">Baixar Verso</span>
-              </button>
+                <Upload size={18} className="rotate-180" />
+                <span className="font-bold text-xs uppercase">Ver Verso</span>
+              </a>
             )}
           </div>
         ) : (
@@ -228,8 +245,12 @@ const FuncionarioForm = React.forwardRef<HTMLFormElement, { onSuccess: () => voi
 
 
   const fetchRoles = async () => {
-    const { data } = await supabase.schema('gestaohashi').from('cargos').select('*').order('name');
-    if (data) setRoles(data);
+    const { data, error } = await supabase.rpc('manage_cargos_mda', { action_type: 'SELECT_ALL' });
+    if (error) {
+      console.error('Erro ao buscar cargos (RPC):', error);
+      return;
+    }
+    if (data) setRoles((data as any[]).map((d: any) => ({ id: d.id, name: d.nome })));
   };
 
   useEffect(() => { fetchRoles(); }, []);
@@ -269,56 +290,87 @@ const FuncionarioForm = React.forwardRef<HTMLFormElement, { onSuccess: () => voi
     }
   };
 
-  const uploadFile = async (file: File, path: string) => {
-    // Placeholder for upload logic.
-    // real implementation requires bucket setup.
-    // returning fake URL for now if no bucket known.
-    // In a real scenario: await supabase.storage.from('documents').upload(path, file);
-    return `https://fake-url.com/${path}`;
+  const uploadFile = async (file: File, path: string): Promise<string | null> => {
+    const { data, error } = await supabase.storage
+      .from('mdaprodutosnaturais')
+      .upload(path, file, { upsert: true });
+    if (error) {
+      console.error('[uploadFile] erro:', error.message);
+      return null;
+    }
+    const { data: urlData } = supabase.storage
+      .from('mdaprodutosnaturais')
+      .getPublicUrl(data.path);
+    return urlData.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[handleSubmit] Form submitted, formData:', formData);
+    if (loading) return; // previne duplo clique
     setLoading(true);
 
     try {
       const isFreelancer = formData.tipoContrato === 'Freelancer';
-      const payload = {
+      const payload: Record<string, string> = {
         status: formData.status,
-        type: formData.tipoContrato,
-        role: isFreelancer ? 'Freelancer' : formData.funcao,
-        admission_date: isFreelancer ? null : formData.dataEntrada,
-        name: formData.nome,
-        gender: isFreelancer ? null : formData.sexo,
-        birth_date: isFreelancer ? null : (formData.dataNascimento || null),
-        phone: formData.telefone,
-        emergency_phone: formData.telefoneRecado,
-        email: isFreelancer ? null : formData.email,
-        bank_account_name: formData.titular,
-        bank_name: formData.banco,
-        bank_key_type: formData.pixTipo,
-        bank_key: formData.pixChave,
-        document_type: isFreelancer ? null : formData.docTipo,
-        document: isFreelancer ? null : formData.docNumero,
-        street: isFreelancer ? null : formData.rua,
-        number: isFreelancer ? null : formData.numero,
-        neighborhood: isFreelancer ? null : formData.bairro,
-        city: isFreelancer ? null : formData.cidade,
-        state: isFreelancer ? null : formData.estado,
-        complement: isFreelancer ? null : formData.complemento,
-        code: initialData?.codigo ? parseInt(initialData.codigo) : Math.floor(Math.random() * 9000) + 1000
+        tipo_contrato: formData.tipoContrato,
+        funcao: isFreelancer ? 'Freelancer' : formData.funcao,
+        data_entrada: isFreelancer ? '' : formData.dataEntrada,
+        nome: formData.nome,
+        sexo: isFreelancer ? '' : formData.sexo,
+        data_nascimento: isFreelancer ? '' : formData.dataNascimento,
+        telefone: formData.telefone,
+        telefone_recado: formData.telefoneRecado,
+        email: isFreelancer ? '' : formData.email,
+        titular_conta: formData.titular,
+        banco: formData.banco,
+        pix_tipo: formData.pixTipo,
+        pix_chave: formData.pixChave,
+        documento_tipo: isFreelancer ? '' : formData.docTipo,
+        documento_numero: isFreelancer ? '' : formData.docNumero,
+        rua: isFreelancer ? '' : formData.rua,
+        numero: isFreelancer ? '' : formData.numero,
+        bairro: isFreelancer ? '' : formData.bairro,
+        cidade: isFreelancer ? '' : formData.cidade,
+        estado: isFreelancer ? '' : formData.estado,
+        complemento: isFreelancer ? '' : formData.complemento,
       };
 
-      console.log('[handleSubmit] Saving to DB with payload:', payload);
+      // Upload dos documentos (frente/verso) se existirem
+      let frenteUrl: string | null = null;
+      let versoUrl: string | null = null;
+      const nomeSanitizado = formData.nome.replace(/\s+/g, '_').toLowerCase();
+      const ts = Date.now();
+
+      if (docFrente) {
+        frenteUrl = await uploadFile(docFrente, `funcionarios/${nomeSanitizado}_frente_${ts}`);
+      }
+      if (docVerso) {
+        versoUrl = await uploadFile(docVerso, `funcionarios/${nomeSanitizado}_verso_${ts}`);
+      }
+
+      // Adiciona URLs ao payload se tiver arquivo
+      if (frenteUrl) (payload as any).documento_frente_url = frenteUrl;
+      if (versoUrl) (payload as any).documento_verso_url = versoUrl;
 
       let error;
       if (initialData?.id) {
-        const { error: updateError } = await supabase.schema('gestaohashi').from('equipe').update(payload).eq('id', initialData.id);
-        error = updateError;
+        const { error: e } = await supabase
+          .rpc('manage_funcionarios_mda', {
+            action_type: 'UPDATE',
+            f_id: initialData.id,
+            payload
+          });
+        error = e;
       } else {
-        const { error: insertError } = await supabase.schema('gestaohashi').from('equipe').insert(payload);
-        error = insertError;
+        const { error: e } = await supabase
+          .rpc('insert_funcionario_mda', {
+            payload: {
+              ...payload,
+              codigo: Math.floor(Math.random() * 9000) + 1000
+            }
+          });
+        error = e;
       }
 
       if (error) {
@@ -345,11 +397,7 @@ const FuncionarioForm = React.forwardRef<HTMLFormElement, { onSuccess: () => voi
   if (showRoleManager) {
     return (
       <div className="p-2">
-        <div className="flex items-center gap-2 mb-4 text-slate-500 cursor-pointer hover:text-indigo-600" onClick={() => setShowRoleManager(false)}>
-          <div className="rotate-180"><Share2 size={16} /></div> {/* Using Share2 as placeholder for back arrow since ArrowLeft wasn't imported yet, or just text */}
-          <span className="text-xs font-bold uppercase">Voltar para o formulário</span>
-        </div>
-        <RoleManager
+        <CargoManager
           onClose={() => setShowRoleManager(false)}
           onUpdate={fetchRoles}
         />
@@ -678,71 +726,48 @@ const FuncionariosPage: React.FC = () => {
 
   const mapToFuncionario = (item: any, includeDocs = false): Funcionario => ({
     id: item.id,
-    codigo: item.code?.toString() || '',
-    dataEntrada: item.admission_date ? new Date(item.admission_date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '',
-    tipoContrato: item.type || '',
-    nome: item.name || 'Sem nome',
+    codigo: item.codigo?.toString() || '',
+    dataEntrada: item.data_entrada ? new Date(item.data_entrada).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '',
+    tipoContrato: item.tipo_contrato || '',
+    nome: item.nome || 'Sem nome',
     status: (item.status || 'Ativo') as any,
-    cargo: item.role || '',
-    funcao: item.role || '',
-    contato: item.phone || '',
-    contatoRecado: item.emergency_phone || '',
+    cargo: item.funcao || '',
+    funcao: item.funcao || '',
+    contato: item.telefone || '',
+    contatoRecado: item.telefone_recado || '',
     email: item.email || '',
-    sexo: item.gender || '',
-    dataNascimento: item.birth_date ? new Date(item.birth_date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '',
-    nacionalidade: item.nationality || '',
-    titularConta: item.bank_account_name || '',
-    banco: item.bank_name || '',
-    pixTipo: item.bank_key_type || '',
-    pixChave: item.bank_key || '',
-    documentoTipo: item.document_type || '',
-    documentoNumero: item.document || '',
+    sexo: item.sexo || '',
+    dataNascimento: item.data_nascimento ? new Date(item.data_nascimento).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '',
+    nacionalidade: '',
+    titularConta: item.titular_conta || '',
+    banco: item.banco || '',
+    pixTipo: item.pix_tipo || '',
+    pixChave: item.pix_chave || '',
+    documentoTipo: item.documento_tipo || '',
+    documentoNumero: item.documento_numero || '',
     endereco: {
-      rua: item.street || '',
-      numero: item.number || '',
-      bairro: item.neighborhood || '',
-      cidade: item.city || '',
-      estado: item.state || '',
-      complemento: item.complement || ''
+      rua: item.rua || '',
+      numero: item.numero || '',
+      bairro: item.bairro || '',
+      cidade: item.cidade || '',
+      estado: item.estado || '',
+      complemento: item.complemento || ''
     },
-    documentoFrente: includeDocs ? item.document_front : '',
-    documentoVerso: includeDocs ? item.document_back : ''
+    documentoFrente: item.documento_frente_url || '',
+    documentoVerso: item.documento_verso_url || '',
+    dataCadastro: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : ''
   });
 
   const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
       const { data: result, error } = await supabase
-        .schema('gestaohashi')
-        .from('equipe')
-        .select(`
-          id, code, admission_date, type, name, status, role, phone, emergency_phone, email, gender,
-          birth_date, nationality, bank_account_name, bank_name, bank_key_type,
-          bank_key, document_type, document, street, number, neighborhood, city, state, complement
-        `)
-        .order('name');
+        .rpc('manage_funcionarios_mda', { action_type: 'SELECT_ALL' });
 
       if (error) throw error;
-
-      if (result) {
-        const formattedData: Funcionario[] = result.map(item => mapToFuncionario(item, false));
-        setData(formattedData);
-      }
-
-      // Fetch config
-      const { data: configData } = await supabase
-        .schema('gestaohashi')
-        .from('config')
-        .select('value')
-        .eq('key', 'public_form_enabled')
-        .single();
-
-      if (configData) {
-        setPublicLinkEnabled(configData.value === 'true');
-      }
+      if (result) setData(result.map(item => mapToFuncionario(item, false)));
     } catch (error: any) {
       console.error('Erro ao carregar funcionários:', error);
-      alert(`Erro: ${error.message || JSON.stringify(error)}`);
     } finally {
       setLoading(false);
     }
@@ -774,12 +799,16 @@ const FuncionariosPage: React.FC = () => {
             });
 
             // Perform deletion in background
-            const { error } = await supabase.schema('gestaohashi').from('equipe').delete().eq('id', item.id);
+            const { error } = await supabase
+              .rpc('manage_funcionarios_mda', {
+                action_type: 'DELETE',
+                f_id: item.id
+              });
+
             if (error) {
-              // Rollback if needed, but for now just alert
-              throw error;
+              console.error('Erro ao deletar (RPC):', error);
+              // Revert optimistic update? For now just log.
             }
-            // Silent refresh to ensure sync
             loadData(true);
           } catch (error) {
             console.error('Erro ao excluir:', error);
@@ -831,16 +860,10 @@ const FuncionariosPage: React.FC = () => {
       // Fetch full details from DB to sync, but EXCLUDE heavy documents for speed (load on demand)
       let fullData = { ...item };
       try {
-        const { data, error } = await supabase
-          .schema('gestaohashi')
-          .from('equipe')
-          .select(`
-            id, code, admission_date, type, name, status, role, phone, emergency_phone, email, gender,
-            birth_date, nationality, bank_account_name, bank_name, bank_key_type,
-            bank_key, document_type, document, street, number, neighborhood, city, state, complement
-          `) // Explicitly NO document_front/back
-          .eq('id', item.id)
-          .single();
+        const { data, error } = await supabase.rpc('manage_funcionarios_mda', {
+          action_type: 'SELECT_BY_ID',
+          f_id: item.id
+        });
 
         if (data && !error) {
           fullData = mapToFuncionario(data, false);
@@ -860,7 +883,7 @@ const FuncionariosPage: React.FC = () => {
   };
 
   const handleShare = () => {
-    const link = `${window.location.origin}/#${AppRoute.PUBLIC_FORM_FUNCIONARIO}`;
+    const link = `${window.location.origin}/form-funcionario`;
 
     setModalConfig({
       isOpen: true,
@@ -914,28 +937,49 @@ const FuncionariosPage: React.FC = () => {
     });
   };
 
+  const [pixCopiadoId, setPixCopiadoId] = useState<string | null>(null);
+
+  const copiarPixTabela = (id: string, chave: string) => {
+    navigator.clipboard.writeText(chave);
+    setPixCopiadoId(id);
+    setTimeout(() => setPixCopiadoId(null), 2000);
+  };
+
   const columns: Column[] = [
-    { header: '#', accessor: (_, index) => <span className="text-slate-500 font-bold">{index + 1}</span>, className: 'w-12 text-center' },
+    {
+      header: '#',
+      accessor: (_, index) => <span className="text-xs text-slate-400 font-medium">{index + 1}</span>,
+      className: 'w-10 text-center'
+    },
+    {
+      header: 'Data',
+      accessor: (item) => <span className="text-xs text-slate-500">{item.dataCadastro || '-'}</span>,
+      className: 'w-24 text-center'
+    },
     {
       header: 'Funcionário',
       accessor: (item) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black text-xs shadow-md">
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow shrink-0">
             {item.nome.charAt(0)}
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-slate-900 dark:text-white truncate max-w-[150px] tracking-tight">{item.nome}</span>
-            <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest">{item.codigo}</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-semibold text-slate-900 dark:text-white truncate max-w-[140px]">{item.nome}</span>
+            <span className="text-[10px] text-slate-400 font-medium">{item.codigo}</span>
           </div>
         </div>
       ),
-      className: 'w-56'
+      className: 'w-52'
     },
-    { header: 'Função', accessor: 'funcao', className: 'w-36 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-tight' },
+    {
+      header: 'Função',
+      accessor: (item) => <span className="text-sm text-slate-600 dark:text-slate-400">{item.funcao || '-'}</span>,
+      className: 'w-36'
+    },
     {
       header: 'Vínculo',
       accessor: (item) => (
-        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${item.tipoContrato === 'CLT' ? 'bg-blue-50 text-blue-700' :
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${item.tipoContrato === 'CLT' ? 'bg-blue-50 text-blue-700' :
           item.tipoContrato === 'Freelancer' ? 'bg-orange-50 text-orange-700' :
             item.tipoContrato === 'PJ' ? 'bg-purple-50 text-purple-700' :
               'bg-slate-100 text-slate-600'
@@ -949,38 +993,51 @@ const FuncionariosPage: React.FC = () => {
       header: 'Pix',
       accessor: (item) => item.pixChave ? (
         <button
-          onClick={() => {
-            navigator.clipboard.writeText(item.pixChave);
-            setModalConfig({
-              isOpen: true,
-              type: 'confirm-insert',
-              title: 'Sucesso',
-              content: 'Chave Pix copiada!',
-              confirmText: 'OK',
-              showCancel: false,
-              onConfirm: () => setModalConfig({ isOpen: false })
-            });
-          }}
-          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all group relative"
+          onClick={() => copiarPixTabela(item.id, item.pixChave)}
+          className="p-1.5 rounded-md transition-all"
           title={item.pixChave}
         >
-          <Copy size={16} />
+          <Copy size={15} className={`transition-colors ${pixCopiadoId === item.id ? 'text-emerald-500' : 'text-slate-300 hover:text-indigo-500'}`} />
         </button>
-      ) : <span className="text-slate-300">-</span>,
-      className: 'w-16 text-center'
+      ) : <span className="text-slate-200 text-sm">—</span>,
+      className: 'w-14 text-center'
     },
-    { header: 'Status', accessor: (item) => <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm border bg-emerald-50 text-emerald-700 border-emerald-100">{item.status}</span>, className: 'w-28 text-center' },
-    { header: 'Contato', accessor: 'contato', className: 'w-36 text-slate-500 font-bold' },
+    {
+      header: 'Status',
+      accessor: (item) => (
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${item.status === 'Ativo' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+          item.status === 'Férias' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+            'bg-red-50 text-red-700 border-red-100'
+          }`}>{item.status}</span>
+      ),
+      className: 'w-24 text-center'
+    },
+    {
+      header: 'Contato',
+      accessor: (item) => (
+        item.contato ? (
+          <a
+            href={`https://wa.me/55${item.contato.replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm text-slate-500 hover:text-indigo-600 hover:underline transition-all"
+          >
+            {item.contato}
+          </a>
+        ) : <span className="text-sm text-slate-400">-</span>
+      ),
+      className: 'w-36'
+    },
     {
       header: 'Ações',
       accessor: (item) => (
-        <div className="flex items-center gap-1">
-          <button onClick={() => handleAction('view', item)} className="p-2 text-slate-400 hover:text-indigo-600 transition-all"><Eye size={18} /></button>
-          <button onClick={() => handleAction('edit', item)} className="p-2 text-slate-400 hover:text-indigo-600 transition-all"><Edit3 size={18} /></button>
-          <button onClick={() => handleAction('delete', item)} className="p-2 text-slate-400 hover:text-red-600 transition-all"><Trash2 size={18} /></button>
+        <div className="flex items-center gap-0.5">
+          <button onClick={() => handleAction('view', item)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="Ver"><Eye size={16} /></button>
+          <button onClick={() => handleAction('edit', item)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="Editar"><Edit3 size={16} /></button>
+          <button onClick={() => handleAction('delete', item)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Excluir"><Trash2 size={16} /></button>
         </div>
       ),
-      className: 'w-32 text-right'
+      className: 'w-28'
     }
   ];
 
@@ -1000,15 +1057,10 @@ const FuncionariosPage: React.FC = () => {
             <Plus size={16} />
             Novo Funcionário
           </button>
-          <button onClick={() => loadData(false)} className="p-2 text-slate-400 hover:text-indigo-600"><RefreshCw size={20} className={loading ? 'animate-spin' : ''} /></button>
         </div>
       </div>
 
-      {loading ? (
-        <div className="py-20 flex justify-center"><RefreshCw size={40} className="text-red-600 animate-spin" /></div>
-      ) : (
-        <Table columns={columns} data={data} searchPlaceholder="Buscar por nome..." />
-      )}
+      <Table columns={columns} data={data} searchPlaceholder="Buscar por nome..." />
 
       <Modal
         isOpen={modalConfig.isOpen}
@@ -1017,6 +1069,7 @@ const FuncionariosPage: React.FC = () => {
         maxWidth={modalConfig.maxWidth}
         content={modalConfig.content}
         onConfirm={modalConfig.onConfirm}
+        isLoading={loading}
         // @ts-ignore
         confirmText={modalConfig.confirmText}
         onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}

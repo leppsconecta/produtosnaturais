@@ -3,7 +3,6 @@ import { motion } from 'motion/react';
 import { Heart, ShieldCheck, Truck, Users } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
-import Footer from '../components/Footer';
 
 export default function AboutPage() {
   const features = [
@@ -92,7 +91,6 @@ export default function AboutPage() {
         </section>
       </main>
 
-      <Footer />
       <FloatingWhatsApp />
     </div>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Home from './pages/Home';
 import ProductsPage from './pages/ProductsPage';
@@ -12,6 +12,8 @@ import CatalogoPage from './pages/Catalogo';
 import EscalaPage from './pages/Escala';
 import FichaTecnicaPage from './pages/FichaTecnica';
 import CurriculosPage from './pages/Curriculos';
+import TrabalheConoscoPage from './pages/TrabalheConosco';
+import PublicFormFuncionario from './pages/PublicFormFuncionario';
 import AdminLayout from './components/AdminLayout';
 
 import { CartProvider } from './context/CartContext';
@@ -45,6 +47,8 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/produtos" element={<ProductsPage />} />
               <Route path="/quemsomos" element={<AboutPage />} />
+              <Route path="/curriculo" element={<TrabalheConoscoPage />} />
+              <Route path="/form-funcionario" element={<PublicFormFuncionario />} />
               <Route path="/admin/login" element={<AdminLogin />} />
 
               {/* Admin Routes */}

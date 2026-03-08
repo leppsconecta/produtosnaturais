@@ -36,7 +36,7 @@ export default function Navbar() {
     { name: 'Início', href: '/#inicio' },
     { name: 'Produtos', href: '/produtos' },
     { name: 'Quem Somos', href: '/quemsomos' },
-    { name: 'Atacado', href: '/#atacado' },
+    { name: 'Trabalhe Conosco', href: '/curriculo' },
     { name: 'Contato', href: '/#contato' },
   ];
 
@@ -62,13 +62,11 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <img
-              src="https://ui-avatars.com/api/?name=MDA&background=99CC33&color=1E0028&rounded=true&bold=true"
+              src="/logo.png"
               alt="Logo Empórios MDA"
-              className="w-10 h-10 object-contain shadow-sm"
+              className="h-10 w-auto object-contain"
             />
-            <span className="text-2xl font-bold tracking-tight text-white">
-              Empórios MDA
-            </span>
+            <span className="sr-only">Empórios MDA</span>
           </Link>
 
           {/* Desktop Nav */}

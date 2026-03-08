@@ -12,11 +12,32 @@ export default function Products() {
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/products?public=true').then(res => res.json()).then(data => {
-      // Just take 8 random or first products to feature on home page
-      const featured = data.slice(0, 8);
-      setProducts(featured);
-    }).catch(console.error);
+    try {
+      const saved = localStorage.getItem('sabordaterra_categorias');
+      if (saved) {
+        const categorias = JSON.parse(saved);
+        // Coleta todos os itens visiveis
+        const todosItens = categorias.flatMap((c: any) =>
+          c.itens.filter((i: any) => i.visivel !== false) // Default é true se undefined
+        );
+        // Filtra os favoritos
+        const favoritos = todosItens.filter((i: any) => i.favorito).slice(0, 8);
+
+        // Mapeia para o formato esperado pelo componente
+        const formattedProducts = favoritos.map((item: any) => ({
+          id: item.id,
+          name: item.nome,
+          desc: item.descricao,
+          price: parseFloat(item.preco.replace('.', '').replace(',', '.')),
+          img: item.foto || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+          weight: item.variacoes?.length ? 'Várias opções' : (item.unidade || 'Unid')
+        }));
+
+        setProducts(formattedProducts);
+      }
+    } catch (e) {
+      console.error('Erro ao carregar favoritos:', e);
+    }
   }, []);
 
   const handleQuantityChange = (id: number, delta: number) => {

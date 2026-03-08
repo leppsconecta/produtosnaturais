@@ -1,11 +1,23 @@
 import { Leaf, Instagram, Facebook } from 'lucide-react';
 
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
+
+const WhatsAppIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+  </svg>
+);
+
 export default function Footer() {
   return (
     <footer className="bg-earth-800 text-earth-100 pt-16 pb-8 border-t border-earth-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-          
+
           {/* Brand */}
           <div className="col-span-1 lg:col-span-1">
             <a href="#inicio" className="flex items-center gap-2 group mb-6">
@@ -23,6 +35,12 @@ export default function Footer() {
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center hover:bg-mustard-500 hover:text-olive-900 transition-colors">
                 <Facebook className="w-5 h-5" />
+              </a>
+              <a href="https://wa.me/5511940546968" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center hover:bg-mustard-500 hover:text-olive-900 transition-colors">
+                <WhatsAppIcon className="w-5 h-5" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center hover:bg-mustard-500 hover:text-olive-900 transition-colors">
+                <TikTokIcon className="w-5 h-5" />
               </a>
             </div>
           </div>

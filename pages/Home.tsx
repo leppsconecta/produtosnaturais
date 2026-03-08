@@ -2,6 +2,7 @@ import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import Products from '../components/Products';
 import Wholesale from '../components/Wholesale';
+import Testimonials from '../components/Testimonials';
 import Contact from '../components/Contact';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
@@ -13,6 +14,7 @@ export default function Home() {
       <main>
         <Hero />
         <Products />
+        <Testimonials />
         <Wholesale />
         <Contact />
       </main>

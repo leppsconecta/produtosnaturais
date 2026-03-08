@@ -19,6 +19,7 @@ export interface Funcionario {
   telefone?: string;
   codigo?: string;
   dataEntrada?: string;
+  dataCadastro?: string;
   status: string;
   [key: string]: any;
 }

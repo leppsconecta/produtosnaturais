@@ -537,16 +537,16 @@ const MenuOnline: React.FC = () => {
     try {
       const category = categorias.find(c => c.itens.some(i => i.id === selectedProductToRate.id));
 
-      const { error } = await supabase
-        .schema('gestaohashi')
-        .from('avaliacoes_produto')
-        .insert({
+      const { error } = await supabase.rpc('manage_feedbacks_mda', {
+        action_type: 'INSERT_REVIEW',
+        payload: {
           produto_nome: selectedProductToRate.nome,
           categoria_nome: category?.nome || 'Geral',
           avaliacao: ratingText,
           status: 'Pendente',
           tipo: ratingType
-        });
+        }
+      });
 
       if (error) throw error;
 

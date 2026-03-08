@@ -65,7 +65,6 @@ interface CardapioItem {
   mercadolivre_link?: string;
   amazon_link?: string;
   aliexpress_link?: string;
-  favorito?: boolean; // Flag to indicate if product is featured on Home
 }
 
 interface DestaqueMidia {
@@ -252,11 +251,6 @@ const CardapioPage: React.FC = () => {
 
   // Add dropdown state
   const [showAddDropdown, setShowAddDropdown] = useState(false);
-
-  // Favoritos state
-  const [favoritosModalOpen, setFavoritosModalOpen] = useState(false);
-  const [tempFavoritos, setTempFavoritos] = useState<string[]>([]);
-
 
   // Filter state
   const [showFilter, setShowFilter] = useState(false);
@@ -495,23 +489,132 @@ const CardapioPage: React.FC = () => {
     }, 10000);
 
     try {
-      // O projeto atual não tem permissão para acessar 'gestaohashi'
-      // Voltando para mocks conforme solicitado para não tocar no schema alheio
-      setCategorias(INITIAL_CATEGORIAS);
-      setIsLoading(false);
-      return;
-
-      /* 
-      // Código de busca real comentado até que as tabelas em 'public' sejam recriadas (vazias)
+      // Fetch categories
       const { data: catData, error: catError } = await supabase
+        .schema('gestaohashi')
         .from('categorias')
         .select('*')
         .order('ordem', { ascending: true });
-      // ... 
-      */
+
+      if (catError) throw catError;
+
+      // Fetch special content (destaques)
+      const { data: destaquesData, error: destaquesError } = await supabase
+        .schema('gestaohashi')
+        .from('destaques_conteudo')
+        .select('*');
+
+      if (destaquesError && destaquesError.code !== '42P01') console.error('Error fetching destaques:', destaquesError);
+
+      // Fetch products for these categories
+      const { data: prodData, error: prodError } = await supabase
+        .schema('gestaohashi')
+        .from('produtos')
+        .select('*')
+        .order('ordem', { ascending: true });
+
+      if (prodError) throw prodError;
+
+      // Fetch combo items
+      const { data: comboItemData, error: comboItemError } = await supabase
+        .schema('gestaohashi')
+        .from('combo_produtos')
+        .select('*');
+
+      if (comboItemError) throw comboItemError;
+
+      // Format data
+      const formattedCategorias: CardapioCategoria[] = catData.map(cat => ({
+        id: cat.id,
+        nome: cat.nome,
+        tipo: cat.tipo || 'padrao',
+        destaque: destaquesData?.find(d => d.categoria_id === cat.id),
+        itens: prodData
+          .filter(p => p.categoria_id === cat.id)
+          .map(p => ({
+            id: p.id,
+            nome: p.nome,
+            descricao: p.descricao || '',
+            preco: p.preco?.toString().replace('.', ',') || '0,00',
+            foto: p.foto_url,
+            ativo: p.ativo ?? true,
+            isCombo: p.is_combo ?? false,
+            showSavings: p.show_savings ?? false,
+            savingsAmount: p.savings_amount?.toString().replace('.', ',') || '',
+            visivel: p.visivel ?? true,
+            categoria_id: cat.id,
+            variacoes: p.variacoes ? p.variacoes.map((v: any) => ({ ...v, preco: Number(v.preco).toFixed(2).replace('.', ',') })) : [],
+            comboItens: comboItemData
+              .filter(ci => ci.combo_id === p.id)
+              .map(ci => ({
+                id: ci.id,
+                nome: ci.nome,
+                descricao: ci.descricao,
+                quantidade: ci.quantidade,
+                unidade: ci.unidade as any,
+                foto: ci.foto_url,
+                isFromCardapio: !!ci.produto_id,
+                originalItemId: ci.produto_id
+              }))
+          }))
+      }));
+
+      setCategorias(formattedCategorias);
+
+      // Fetch Menu Status
+      try {
+        const { data: configData } = await supabase
+          .schema('gestaohashi')
+          .from('config')
+          .select('value')
+          .eq('key', 'menu_online_enabled')
+          .single();
+
+        if (configData) {
+          setMenuOnlineEnabled(configData.value === 'true');
+        } else {
+          // Default to enabled if not found
+          setMenuOnlineEnabled(true);
+        }
+      } catch (e) {
+        console.warn('Menu config not found');
+      }
+
+      // Fetch Hero Images
+      try {
+        const { data: heroData, error: heroError } = await supabase
+          .schema('gestaohashi')
+          .from('hero_images')
+          .select('*')
+          .order('ordem', { ascending: true });
+
+        if (!heroError && heroData && heroData.length > 0) {
+          const formattedHeroes = [0, 1, 2].map(idx => {
+            const h = heroData.find(hd => hd.ordem === idx);
+            return h ? {
+              id: h.id,
+              foto: h.foto_url,
+              titulo: h.titulo || '',
+              subtitulo: h.subtitulo || '',
+              showDescription: h.show_description ?? false
+            } : { id: `hero-${idx}`, foto: '', titulo: '', subtitulo: '', showDescription: false };
+          });
+          setHeroImages(formattedHeroes);
+        }
+      } catch (e) {
+        console.warn('Hero images table might not be ready yet.');
+      }
+
     } catch (error: any) {
       console.error('Error fetching cardapio data:', error);
-      setCategorias(INITIAL_CATEGORIAS);
+      // Only alert if it's not a common "table not found" during setup
+      if (error.code !== 'PGRST116' && error.code !== '42P01') {
+        showToast('Erro ao carregar dados: ' + error.message, 'error');
+      }
+      // Fallback para evitar tela branca eterna em caso de erro grave
+      if (categorias.length === 0) {
+        setCategorias(INITIAL_CATEGORIAS); // Dados de exemplo/fallback
+      }
     } finally {
       clearTimeout(safetyTimeout);
       setIsLoading(false);
@@ -1663,7 +1766,7 @@ const CardapioPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Catálogo</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Cardápio</h1>
           <p className="text-sm text-slate-500">Gerencie os produtos do seu estabelecimento</p>
         </div>
         <div className="flex items-center gap-3">
@@ -1692,13 +1795,13 @@ const CardapioPage: React.FC = () => {
             </span>
           </div>
 
-          <a
-            href="/produtos"
-            className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-sm"
+          <button
+            onClick={() => window.open('/#/public/menu', '_blank')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-medium border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm group"
           >
-            Ver Site
-            <ExternalLink size={16} />
-          </a>
+            <ExternalLink size={16} className="text-slate-400 group-hover:text-indigo-500 transition-colors" />
+            Visualizar
+          </button>
         </div>
       </div>
 
@@ -2030,18 +2133,13 @@ const CardapioPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Favoritos Button */}
+                  {/* Capa Button */}
                   <button
-                    onClick={() => {
-                      // Collect all current favoritos
-                      const currentFavs = categorias.flatMap(c => c.itens).filter(i => i.favorito).map(i => i.id);
-                      setTempFavoritos(currentFavs);
-                      setFavoritosModalOpen(true);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-amber-100/50 hover:bg-amber-100 text-amber-600 dark:text-amber-400 font-medium rounded-lg text-sm transition-all shadow-sm border border-amber-200 dark:border-amber-800"
+                    onClick={() => focusSection('hero')}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-lg text-sm transition-all shadow-sm border border-slate-200 dark:border-slate-700"
                   >
-                    <Star size={16} className="fill-amber-400 text-amber-500" />
-                    Favoritos
+                    <ImageIcon size={16} />
+                    Capa
                   </button>
 
                   {/* Add Dropdown */}
@@ -2086,8 +2184,159 @@ const CardapioPage: React.FC = () => {
               </div>
             )}
 
+            {/* SPECIAL CATEGORY VIEW - Compact */}
+            {activeCategory?.tipo === 'especial' && activeCategory.destaque ? (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                <div className="flex flex-col md:flex-row h-full">
+                  {/* Left Column: Details */}
+                  <div className="p-5 md:w-1/2 flex flex-col justify-between space-y-4 relative">
+                    <div className="space-y-3 h-full flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold tracking-wider uppercase">
+                          Destaque Especial
+                        </span>
+
+                        <div className="flex items-center gap-2 ml-auto">
+                          <span className={`text-[10px] font-bold uppercase transition-colors ${activeCategory.destaque.ativo ? 'text-emerald-600' : 'text-slate-400'}`}>
+                            {activeCategory.destaque.ativo ? 'Visível' : 'Oculto'}
+                          </span>
+                          <button
+                            onClick={() => toggleDestaqueStatus(activeCategory)}
+                            className={`relative w-8 h-4 rounded-full transition-colors ${activeCategory.destaque.ativo ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                          >
+                            <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${activeCategory.destaque.ativo ? 'translate-x-4' : ''}`} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 flex flex-col gap-3">
+                        {/* Title Input */}
+                        <input
+                          type="text"
+                          value={activeCategory.destaque.titulo}
+                          onChange={(e) => updateDestaqueField(activeCategory.id, 'titulo', e.target.value)}
+                          placeholder="Título do destaque"
+                          className="text-2xl font-black text-slate-900 dark:text-white bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none transition-all w-full placeholder:text-slate-300"
+                        />
+
+                        {/* Description Preview & Edit Trigger */}
+                        <div
+                          onClick={() => openDescModal(activeCategory)}
+                          className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 cursor-pointer hover:border-indigo-500 hover:shadow-sm transition-all group flex-1"
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Descrição</span>
+                            <Edit3 size={12} className="text-slate-400 group-hover:text-indigo-500" />
+                          </div>
+                          <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-4">
+                            {activeCategory.destaque.descricao || <span className="text-slate-400 italic">Clique para adicionar uma descrição...</span>}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 pt-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest whitespace-nowrap">A partir de R$</span>
+                        <input
+                          type="text"
+                          value={activeCategory.destaque.preco || ''}
+                          onChange={(e) => updateDestaqueField(activeCategory.id, 'preco', formatPrice(e.target.value))}
+                          placeholder="0,00"
+                          className="text-2xl font-light text-emerald-600 dark:text-emerald-400 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-emerald-500 outline-none w-32"
+                        />
+                      </div>
+
+                      <button
+                        onClick={() => handleSaveDestaque(activeCategory.id)}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-colors w-fit shadow-md"
+                      >
+                        <Save size={16} />
+                        Salvar Alterações
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Media */}
+                  <div className="md:w-1/2 bg-slate-50 dark:bg-slate-800 relative min-h-[280px] p-2 flex flex-col gap-2">
+                    {/* Media List */}
+                    <div className="flex-1 flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
+                      {isUploadingMedia && (
+                        <div className="relative w-full max-w-[200px] flex-shrink-0 h-full rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center animate-pulse">
+                          <Loader2 size={32} className="text-indigo-500 animate-spin mb-2" />
+                          <span className="text-xs font-bold text-slate-500">Enviando...</span>
+                        </div>
+                      )}
+                      {activeCategory.destaque.midias && activeCategory.destaque.midias.length > 0 ? (
+                        activeCategory.destaque.midias.map((media, idx) => (
+                          <div key={idx} className="relative w-full max-w-[200px] flex-shrink-0 h-full rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-900 group border border-slate-200 dark:border-slate-700">
+                            {media.type === 'video' ? (
+                              <video src={media.url} className="w-full h-full object-contain" />
+                            ) : (
+                              <img src={media.url} alt="" className="w-full h-full object-contain" />
+                            )}
+
+                            <button
+                              onClick={() => handleRemoveDestaqueImage(activeCategory.id, media.url)}
+                              className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-600"
+                              title="Remover imagem"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                          <ImageIcon size={32} className="mb-2 opacity-50" />
+                          <p className="text-xs">Sem mídia</p>
+                        </div>
+                      )}
+
+                      {/* Add Media Button (Always visible at the end or if empty?) - Let's put it at the start or a dedicated button? 
+                            Let's add a "New" card at the end if there are images, or simpler: a dedicated upload area below/above.
+                            Actually, the request was "Adicione uma imagem ao lado da outra".
+                        */}
+                      <label className="w-24 flex-shrink-0 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-indigo-400 transition-all text-slate-400 hover:text-indigo-500">
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*,video/*"
+                          multiple
+                          onChange={(e) => handleDestaqueImageUpload(e, activeCategory.id)}
+                        />
+                        <Plus size={24} />
+                        <span className="text-[10px] font-bold mt-1">NOVA</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : activeCategory?.tipo === 'especial' ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+                <Sparkles size={48} className="text-purple-300 mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 dark:text-white">Conteúdo Especial</h3>
+                <p className="text-slate-500 mb-6 text-center max-w-xs">Esta categoria ainda não possui conteúdo configurado.</p>
+                <button
+                  onClick={() => {
+                    // Initialize with default empty values
+                    const newDestaque = { titulo: activeCategory.nome, descricao: '', preco: '', midias: [], ativo: true };
+                    // We can manually trigger an update or use a helper. 
+                    // Since logic is complex, let's just update local state and let user edit, 
+                    // or save immediately? better to just set state so UI switches to editor.
+                    setCategorias(prev => prev.map(c =>
+                      c.id === activeCategory.id ? { ...c, destaque: newDestaque } : c
+                    ));
+                  }}
+                  className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-all shadow-md"
+                >
+                  <Edit3 size={20} />
+                  Configurar Conteúdo
+                </button>
+              </div>
+            ) : null}
+
             {/* GRID VIEW - Default */}
-            {activeCategory && (
+            {activeCategory?.tipo !== 'especial' && (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
                 {activeCategory?.itens
                   .filter(item => !filterQuery || item.nome.toLowerCase().includes(filterQuery.toLowerCase()))
@@ -2099,7 +2348,7 @@ const CardapioPage: React.FC = () => {
                       onDragOver={(e) => handleDragOver(e, item.id)}
                       onDrop={() => handleDrop(item.id)}
                       onDragEnd={handleDragEnd}
-                      onClick={() => item.isCombo ? openComboModal(item) : openItemModal(item)}
+                      onClick={() => openItemModal(item)}
                       className={`
                 bg-white dark:bg-slate-900 rounded-xl border overflow-hidden hover:shadow-lg transition-all group cursor-pointer active:cursor-grabbing
                 ${dragOverItemId === item.id ? 'border-indigo-500 border-2 scale-105' : 'border-slate-100 dark:border-slate-800'}
@@ -2115,13 +2364,7 @@ const CardapioPage: React.FC = () => {
                             <ImageIcon size={32} className="text-slate-300 dark:text-slate-600" />
                           </div>
                         )}
-                        {/* Combo Badge */}
-                        {item.isCombo && (
-                          <div className="absolute top-2 left-2 px-2 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded-md flex items-center gap-1">
-                            <Layers size={10} />
-                            COMBO
-                          </div>
-                        )}
+
                         {/* Visibility Overlay */}
                         {!item.visivel && (
                           <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
@@ -2164,7 +2407,7 @@ const CardapioPage: React.FC = () => {
                             >
                               <button
                                 onClick={() => {
-                                  item.isCombo ? openComboModal(item) : openItemModal(item);
+                                  openItemModal(item);
                                   setItemMenuOpen(null);
                                 }}
                                 className="w-full px-4 py-2.5 text-left text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 transition-all"
@@ -2210,9 +2453,7 @@ const CardapioPage: React.FC = () => {
                       <div className="p-3">
                         <div className="flex items-center gap-1.5 mb-1">
                           <h3 className="font-semibold text-slate-900 dark:text-white text-xs truncate flex-1">{item.nome}</h3>
-                          {item.isCombo && (
-                            <span className="text-[9px] text-indigo-500 font-medium">{item.comboItens?.length} itens</span>
-                          )}
+
                         </div>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 min-h-[24px]">
                           {item.descricao || 'Sem descrição'}
@@ -2222,16 +2463,24 @@ const CardapioPage: React.FC = () => {
                         {(item.shopee_link || item.mercadolivre_link || item.amazon_link || item.aliexpress_link) && (
                           <div className="flex items-center gap-1 mb-2" onClick={(e) => e.stopPropagation()}>
                             {item.shopee_link && (
-                              <a href={item.shopee_link} target="_blank" rel="noopener noreferrer" className="w-4 h-4 rounded-sm bg-orange-500 flex items-center justify-center text-white text-[8px] font-bold shadow-sm hover:scale-110 transition-transform" title="Shopee">S</a>
+                              <a href={item.shopee_link} target="_blank" rel="noopener noreferrer" className="w-4 h-4 rounded-sm bg-white overflow-hidden shadow-sm hover:scale-110 transition-transform" title="Shopee">
+                                <img src="/shopee-logo.png" alt="Shopee" className="w-full h-full object-contain" />
+                              </a>
                             )}
                             {item.mercadolivre_link && (
-                              <a href={item.mercadolivre_link} target="_blank" rel="noopener noreferrer" className="w-4 h-4 rounded-sm bg-yellow-400 flex items-center justify-center text-slate-900 text-[8px] font-bold shadow-sm hover:scale-110 transition-transform" title="Mercado Livre">M</a>
+                              <a href={item.mercadolivre_link} target="_blank" rel="noopener noreferrer" className="w-4 h-4 rounded-sm bg-white overflow-hidden shadow-sm hover:scale-110 transition-transform" title="Mercado Livre">
+                                <img src="/mercadolivre-logo.png" alt="Mercado Livre" className="w-full h-full object-contain" />
+                              </a>
                             )}
                             {item.amazon_link && (
-                              <a href={item.amazon_link} target="_blank" rel="noopener noreferrer" className="w-4 h-4 rounded-sm bg-slate-800 dark:bg-slate-200 flex items-center justify-center text-white dark:text-slate-900 text-[8px] font-bold shadow-sm hover:scale-110 transition-transform" title="Amazon">a</a>
+                              <a href={item.amazon_link} target="_blank" rel="noopener noreferrer" className="w-4 h-4 rounded-sm bg-white overflow-hidden shadow-sm hover:scale-110 transition-transform" title="Amazon">
+                                <img src="/amazon-logo.png" alt="Amazon" className="w-full h-full object-contain" />
+                              </a>
                             )}
                             {item.aliexpress_link && (
-                              <a href={item.aliexpress_link} target="_blank" rel="noopener noreferrer" className="w-4 h-4 rounded-sm bg-red-600 flex items-center justify-center text-white text-[8px] font-bold shadow-sm hover:scale-110 transition-transform" title="AliExpress">Al</a>
+                              <a href={item.aliexpress_link} target="_blank" rel="noopener noreferrer" className="w-4 h-4 rounded-sm bg-white overflow-hidden shadow-sm hover:scale-110 transition-transform" title="AliExpress">
+                                <img src="/aliexpress-logo.png" alt="AliExpress" className="w-full h-full object-contain" />
+                              </a>
                             )}
                           </div>
                         )}
@@ -2250,11 +2499,7 @@ const CardapioPage: React.FC = () => {
                               `R$ ${item.preco ? parseFloat(String(item.preco).replace(',', '.')).toFixed(2).replace('.', ',') : '0,00'}`
                             )}
                           </span>
-                          {item.isCombo && item.showSavings && item.savingsAmount && (
-                            <span className="text-[9px] text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded">
-                              -R${item.savingsAmount}
-                            </span>
-                          )}
+
                         </div>
                       </div>
                     </div>
@@ -2283,7 +2528,8 @@ const CardapioPage: React.FC = () => {
           </div >
 
         </div >
-      )}
+      )
+      }
 
       {/* Splash Section - Collapsible */}
 
@@ -2317,328 +2563,329 @@ const CardapioPage: React.FC = () => {
         }
         maxWidth="max-w-4xl"
         content={
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* Coluna Esquerda: Imagem */}
-              <div className="w-full md:w-[320px] shrink-0 space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">Imagem ou Vídeo do produto</label>
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Coluna Esquerda: Imagem */}
+            <div className="w-full md:w-[320px] shrink-0 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-2">Imagem ou Vídeo do produto</label>
 
-                  {/* Hidden file input */}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*,video/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
 
-                  {/* Upload area */}
-                  <div
-                    onClick={() => !isUploading && fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl aspect-square flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 cursor-pointer hover:border-indigo-300 transition-all relative overflow-hidden"
-                  >
-                    {isUploading ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 size={32} className="text-indigo-500 animate-spin" />
-                        <span className="text-xs text-slate-400">Processando...</span>
-                      </div>
-                    ) : formData.foto ? (
-                      <>
-                        {mediaType === 'video' || formData.foto.startsWith('data:video') ? (
-                          <video
-                            src={formData.foto}
-                            className="w-full h-full object-cover rounded-xl"
-                            controls
-                            muted
-                          />
-                        ) : (
-                          <img src={formData.foto} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                        )}
-                        {/* Remove button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFormData(prev => ({ ...prev, foto: '' }));
-                            setMediaType(null);
-                          }}
-                          className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all"
-                        >
-                          <X size={14} />
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={32} className="text-slate-300 mb-2" />
-                        <span className="text-xs text-slate-500 font-medium">Clique para enviar</span>
-                        <span className="text-[10px] text-slate-400 mt-1">Imagem (até 5MB) ou Vídeo (até 50MB, máx 30s)</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Coluna Direita: Informações */}
-              <div className="flex-1 space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-2">Nome do produto <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={formData.nome}
-                      onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                      placeholder="Ex: Coca-Cola 350ml"
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 mb-2">Categoria</label>
-                    <select
-                      value={formData.categoria_id}
-                      onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm appearance-none"
-                    >
-                      {categorias
-                        .filter(c => c.tipo !== 'especial')
-                        .map(cat => (
-                          <option key={cat.id} value={cat.id}>{cat.nome}</option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">Descrição</label>
-                  <textarea
-                    value={formData.descricao}
-                    onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-                    placeholder="Ingredientes ou detalhes do produto..."
-                    rows={2}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm resize-none"
-                  />
-                </div>
-
-                {/* Preços */}
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700">
-                  <div className="flex items-center justify-between mb-4">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Configuração de Preços</label>
-                    {(formData.variacoes?.length || 0) < 10 && (
+                {/* Upload area */}
+                <div
+                  onClick={() => !isUploading && fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl aspect-square flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 cursor-pointer hover:border-indigo-300 transition-all relative overflow-hidden"
+                >
+                  {isUploading ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 size={32} className="text-indigo-500 animate-spin" />
+                      <span className="text-xs text-slate-400">Processando...</span>
+                    </div>
+                  ) : formData.foto ? (
+                    <>
+                      {mediaType === 'video' || formData.foto.startsWith('data:video') ? (
+                        <video
+                          src={formData.foto}
+                          className="w-full h-full object-cover rounded-xl"
+                          controls
+                          muted
+                        />
+                      ) : (
+                        <img src={formData.foto} alt="Preview" className="w-full h-full object-cover rounded-xl" />
+                      )}
+                      {/* Remove button */}
                       <button
-                        type="button"
-                        onClick={() => {
-                          let newVariacoes = [...(formData.variacoes || [])];
-                          if (newVariacoes.length === 0) {
-                            newVariacoes = [
-                              { nome: 'Pequena', preco: formData.preco },
-                              { nome: 'Média', preco: '' }
-                            ];
-                          } else {
-                            const placeholders = ['Pequena', 'Média', 'Grande', 'Extra G', 'Família'];
-                            const nextName = placeholders[newVariacoes.length] || '';
-                            newVariacoes.push({ nome: nextName, preco: '' });
-                          }
-                          setFormData({ ...formData, variacoes: newVariacoes, preco: '' });
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFormData(prev => ({ ...prev, foto: '' }));
+                          setMediaType(null);
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                        className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all"
                       >
-                        <Plus size={14} />
-                        + preços
+                        <X size={14} />
                       </button>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    {(!formData.variacoes || formData.variacoes.length === 0) ? (
-                      <div className="flex gap-4 items-end animate-in fade-in duration-300">
-                        <div className="flex-1">
-                          <label className="block text-[10px] font-bold text-slate-400 mb-1">TIPO</label>
-                          <input
-                            type="text"
-                            value="Valor único"
-                            disabled
-                            className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 font-medium cursor-not-allowed"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <label className="block text-[10px] font-bold text-slate-400 mb-1">VALOR (R$)</label>
-                          <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">R$</span>
-                            <input
-                              type="text"
-                              value={formData.preco}
-                              onChange={(e) => setFormData({ ...formData, preco: formatPrice(e.target.value) })}
-                              placeholder="0,00"
-                              className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-bold text-slate-700 dark:text-slate-200"
-                            />
-                          </div>
-                        </div>
-                        <div className="w-10"></div>
-                      </div>
-                    ) : (
-                      <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                        {formData.variacoes.map((variacao, idx) => (
-                          <div key={idx} className="flex gap-3 items-end group">
-                            <div className="flex-1">
-                              {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Variação</label>}
-                              <input
-                                type="text"
-                                placeholder={idx === 0 ? "Pequena" : idx === 1 ? "Média" : "Grande"}
-                                value={variacao.nome}
-                                onChange={(e) => {
-                                  const newVariacoes = [...formData.variacoes!];
-                                  newVariacoes[idx].nome = e.target.value;
-                                  setFormData({ ...formData, variacoes: newVariacoes });
-                                }}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700 dark:text-slate-200"
-                              />
-                            </div>
-                            <div className="w-32">
-                              {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Preço</label>}
-                              <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">R$</span>
-                                <input
-                                  type="text"
-                                  placeholder="0,00"
-                                  value={variacao.preco}
-                                  onChange={(e) => {
-                                    const newVariacoes = [...formData.variacoes!];
-                                    newVariacoes[idx].preco = formatPrice(e.target.value);
-                                    setFormData({ ...formData, variacoes: newVariacoes });
-                                  }}
-                                  className="w-full pl-8 pr-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-slate-700 dark:text-slate-200 text-right"
-                                />
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newVariacoes = formData.variacoes!.filter((_, i) => i !== idx);
-                                // Se ao remover sobrar apenas 1, volta para o estado de preço único?
-                                if (newVariacoes.length <= 1) {
-                                  // Se sobrou uma, recupera o preço dela para o preco principal
-                                  const finalPrice = newVariacoes.length === 1 ? newVariacoes[0].preco : '';
-                                  setFormData({ ...formData, variacoes: [], preco: finalPrice });
-                                } else {
-                                  setFormData({ ...formData, variacoes: newVariacoes });
-                                }
-                              }}
-                              className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
-                              title="Remover preço"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={32} className="text-slate-300 mb-2" />
+                      <span className="text-xs text-slate-500 font-medium">Clique para enviar</span>
+                      <span className="text-[10px] text-slate-400 mt-1">Imagem (até 5MB) ou Vídeo (até 50MB, máx 30s)</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Sub-seção: Links Externos - FULL WIDTH */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 animate-in fade-in duration-500">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
-                  <ExternalLink size={18} />
-                  <label className="text-sm font-bold block uppercase tracking-wide">Vendas Externas</label>
+            {/* Coluna Direita: Informações */}
+            <div className="flex-1 space-y-5">
+              {/* Row 1: Nome do produto e Categoria */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-2">Nome do produto <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={formData.nome}
+                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                    placeholder="Ex: Coca-Cola 350ml"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                  />
                 </div>
-                <p className="text-[11px] text-slate-500 italic">Links de redirecionamento para marketplace. Adicione apenas o que desejar.</p>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-2">Categoria</label>
+                  <select
+                    value={formData.categoria_id}
+                    onChange={(e) => setFormData({ ...formData, categoria_id: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm appearance-none"
+                  >
+                    {categorias
+                      .filter(c => c.tipo !== 'especial')
+                      .map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                      ))}
+                  </select>
+                </div>
               </div>
 
-              {/* Platform Toggles */}
-              <div className="flex flex-wrap gap-3 mb-6">
-                <button
-                  type="button"
-                  onClick={() => setShowLinkInputs(prev => ({ ...prev, shopee: !prev.shopee }))}
-                  className={`flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-bold transition-all border shadow-sm ${showLinkInputs.shopee || formData.shopee_link ? 'bg-orange-50 border-orange-200 text-orange-600 ring-2 ring-orange-500/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                >
-                  <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center font-black text-white text-[10px]">S</div>
-                  Shopee
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowLinkInputs(prev => ({ ...prev, mercadolivre: !prev.mercadolivre }))}
-                  className={`flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-bold transition-all border shadow-sm ${showLinkInputs.mercadolivre || formData.mercadolivre_link ? 'bg-yellow-50 border-yellow-200 text-yellow-600 ring-2 ring-yellow-400/20' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                >
-                  <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center font-black text-slate-900 text-[10px]">M</div>
-                  Mercado Livre
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowLinkInputs(prev => ({ ...prev, amazon: !prev.amazon }))}
-                  className={`flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-bold transition-all border shadow-sm ${showLinkInputs.amazon || formData.amazon_link ? 'bg-slate-100 border-slate-300 text-slate-800 ring-2 ring-slate-400/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                >
-                  <div className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center font-black text-white text-[10px]">a</div>
-                  Amazon
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowLinkInputs(prev => ({ ...prev, aliexpress: !prev.aliexpress }))}
-                  className={`flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-bold transition-all border shadow-sm ${showLinkInputs.aliexpress || formData.aliexpress_link ? 'bg-red-50 border-red-200 text-red-600 ring-2 ring-red-500/10' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                >
-                  <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center font-black text-white text-[10px]">Al</div>
-                  AliExpress
-                </button>
+              {/* Row 2: Descrição */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 mb-2">Descrição</label>
+                <textarea
+                  value={formData.descricao}
+                  onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                  placeholder="Ingredientes ou detalhes do produto..."
+                  rows={2}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm resize-none"
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                {/* Shopee */}
-                {(showLinkInputs.shopee || formData.shopee_link) && (
-                  <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="text-[10px] font-bold text-orange-500 uppercase ml-1">Link Shopee</label>
-                    <input
-                      type="url"
-                      placeholder="https://shopee.com.br/seu-produto"
-                      value={formData.shopee_link}
-                      onChange={e => setFormData({ ...formData, shopee_link: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white border border-orange-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-slate-700 shadow-sm"
-                    />
-                  </div>
-                )}
+              {/* Row 3: Preços Únicos ou Variações Unificadas */}
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700">
+                <div className="flex items-center justify-between mb-4">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Configuração de Preços</label>
+                  {(formData.variacoes?.length || 0) < 10 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        let newVariacoes = [...(formData.variacoes || [])];
+                        // Se não tem variações ainda, a primeira variação assume o preço atual e vira 'Pequena' ou similar
+                        if (newVariacoes.length === 0) {
+                          newVariacoes = [
+                            { nome: 'Pequena', preco: formData.preco },
+                            { nome: 'Média', preco: '' }
+                          ];
+                        } else {
+                          // Determina placeholder baseado na quantidade
+                          const placeholders = ['Pequena', 'Média', 'Grande', 'Extra G', 'Família'];
+                          const nextName = placeholders[newVariacoes.length] || '';
+                          newVariacoes.push({ nome: nextName, preco: '' });
+                        }
+                        setFormData({ ...formData, variacoes: newVariacoes, preco: '' });
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                    >
+                      <Plus size={14} />
+                      + preços
+                    </button>
+                  )}
+                </div>
 
-                {/* Mercado Livre */}
-                {(showLinkInputs.mercadolivre || formData.mercadolivre_link) && (
-                  <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="text-[10px] font-bold text-yellow-600 uppercase ml-1">Link Mercado Livre</label>
-                    <input
-                      type="url"
-                      placeholder="https://produto.mercadolivre.com.br/..."
-                      value={formData.mercadolivre_link}
-                      onChange={e => setFormData({ ...formData, mercadolivre_link: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white border border-yellow-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400/20 focus:border-yellow-400 text-slate-700 shadow-sm"
-                    />
-                  </div>
-                )}
-
-                {/* Amazon */}
-                {(showLinkInputs.amazon || formData.amazon_link) && (
-                  <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="text-[10px] font-bold text-slate-600 uppercase ml-1">Link Amazon</label>
-                    <input
-                      type="url"
-                      placeholder="https://www.amazon.com.br/..."
-                      value={formData.amazon_link}
-                      onChange={e => setFormData({ ...formData, amazon_link: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-800/10 focus:border-slate-800 text-slate-700 shadow-sm"
-                    />
-                  </div>
-                )}
-
-                {/* AliExpress */}
-                {(showLinkInputs.aliexpress || formData.aliexpress_link) && (
-                  <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="text-[10px] font-bold text-red-600 uppercase ml-1">Link AliExpress</label>
-                    <input
-                      type="url"
-                      placeholder="https://pt.aliexpress.com/item/..."
-                      value={formData.aliexpress_link}
-                      onChange={e => setFormData({ ...formData, aliexpress_link: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white border border-red-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-red-600/10 focus:border-red-600 text-slate-700 shadow-sm"
-                    />
-                  </div>
-                )}
+                <div className="space-y-3">
+                  {/* Se não houver variações, mostra o layout de Valor Único */}
+                  {(!formData.variacoes || formData.variacoes.length === 0) ? (
+                    <div className="flex gap-4 items-end animate-in fade-in duration-300">
+                      <div className="flex-1">
+                        <label className="block text-[10px] font-bold text-slate-400 mb-1">TIPO</label>
+                        <input
+                          type="text"
+                          value="Valor único"
+                          disabled
+                          className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 font-medium cursor-not-allowed"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-[10px] font-bold text-slate-400 mb-1">VALOR (R$)</label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">R$</span>
+                          <input
+                            type="text"
+                            value={formData.preco}
+                            onChange={(e) => setFormData({ ...formData, preco: formatPrice(e.target.value) })}
+                            placeholder="0,00"
+                            className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-bold text-slate-700 dark:text-slate-200"
+                          />
+                        </div>
+                      </div>
+                      {/* Espaçador para alinhar com o botão de excluir das variações */}
+                      <div className="w-10"></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                      {formData.variacoes.map((variacao, idx) => (
+                        <div key={idx} className="flex gap-3 items-end group">
+                          <div className="flex-1">
+                            {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Variação</label>}
+                            <input
+                              type="text"
+                              placeholder={idx === 0 ? "Pequena" : idx === 1 ? "Média" : "Grande"}
+                              value={variacao.nome}
+                              onChange={(e) => {
+                                const newVariacoes = [...formData.variacoes!];
+                                newVariacoes[idx].nome = e.target.value;
+                                setFormData({ ...formData, variacoes: newVariacoes });
+                              }}
+                              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700 dark:text-slate-200"
+                            />
+                          </div>
+                          <div className="w-32">
+                            {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Preço</label>}
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">R$</span>
+                              <input
+                                type="text"
+                                placeholder="0,00"
+                                value={variacao.preco}
+                                onChange={(e) => {
+                                  const newVariacoes = [...formData.variacoes!];
+                                  newVariacoes[idx].preco = formatPrice(e.target.value);
+                                  setFormData({ ...formData, variacoes: newVariacoes });
+                                }}
+                                className="w-full pl-8 pr-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-slate-700 dark:text-slate-200 text-right"
+                              />
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newVariacoes = formData.variacoes!.filter((_, i) => i !== idx);
+                              // Se ao remover sobrar apenas 1, volta para o estado de preço único?
+                              // O usuário disse: "Se tivermos apenas um valor o placeholder 'Valor único' deve estar bloqueado"
+                              // Então se newVariacoes.length === 0, volta.
+                              if (newVariacoes.length <= 1) {
+                                // Se sobrou uma, recupera o preço dela para o preco principal
+                                const finalPrice = newVariacoes.length === 1 ? newVariacoes[0].preco : '';
+                                setFormData({ ...formData, variacoes: [], preco: finalPrice });
+                              } else {
+                                setFormData({ ...formData, variacoes: newVariacoes });
+                              }
+                            }}
+                            className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                            title="Remover preço"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Sub-seção: Links Externos */}
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl space-y-3 mt-4 border border-slate-100 dark:border-slate-700">
+                <div className="flex items-center gap-2 mb-2 text-indigo-600 dark:text-indigo-400">
+                  <ExternalLink size={16} />
+                  <label className="text-xs font-bold block uppercase tracking-wide">Vendas Externas</label>
+                </div>
+                <p className="text-[10px] text-slate-500 mb-3">Links de redirecionamento para marketplace. Adicione apenas o que desejar.</p>
+
+                {/* Platform Toggles */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowLinkInputs(prev => ({ ...prev, shopee: !prev.shopee }))}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${showLinkInputs.shopee || formData.shopee_link ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 text-orange-600 dark:text-orange-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                  >
+                    <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center font-bold text-white text-[10px]">S</div>
+                    Shopee
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLinkInputs(prev => ({ ...prev, mercadolivre: !prev.mercadolivre }))}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${showLinkInputs.mercadolivre || formData.mercadolivre_link ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 text-yellow-600 dark:text-yellow-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                  >
+                    <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-slate-900 text-[10px]">M</div>
+                    Mercado Livre
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLinkInputs(prev => ({ ...prev, amazon: !prev.amazon }))}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${showLinkInputs.amazon || formData.amazon_link ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 text-slate-800 dark:text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                  >
+                    <div className="w-5 h-5 rounded-full bg-slate-800 dark:bg-slate-200 flex items-center justify-center font-bold text-white dark:text-slate-900 text-[10px]">a</div>
+                    Amazon
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLinkInputs(prev => ({ ...prev, aliexpress: !prev.aliexpress }))}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${showLinkInputs.aliexpress || formData.aliexpress_link ? 'bg-red-50 dark:bg-red-900/20 border-red-200 text-red-600 dark:text-red-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                  >
+                    <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center font-bold text-white text-[10px]">Al</div>
+                    AliExpress
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Shopee */}
+                  {(showLinkInputs.shopee || formData.shopee_link) && (
+                    <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-2">
+                      <input
+                        type="url"
+                        placeholder="https://shopee.com.br/seu-produto"
+                        value={formData.shopee_link}
+                        onChange={e => setFormData({ ...formData, shopee_link: e.target.value })}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-orange-200 dark:border-orange-500/30 rounded-lg text-sm outline-none focus:ring-1 focus:ring-orange-500 text-slate-900 dark:text-gray-100"
+                      />
+                    </div>
+                  )}
+
+                  {/* Mercado Livre */}
+                  {(showLinkInputs.mercadolivre || formData.mercadolivre_link) && (
+                    <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-2">
+                      <input
+                        type="url"
+                        placeholder="https://produto.mercadolivre.com.br/..."
+                        value={formData.mercadolivre_link}
+                        onChange={e => setFormData({ ...formData, mercadolivre_link: e.target.value })}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-yellow-200 dark:border-yellow-500/30 rounded-lg text-sm outline-none focus:ring-1 focus:ring-yellow-400 text-slate-900 dark:text-gray-100"
+                      />
+                    </div>
+                  )}
+
+                  {/* Amazon */}
+                  {(showLinkInputs.amazon || formData.amazon_link) && (
+                    <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-2">
+                      <input
+                        type="url"
+                        placeholder="https://www.amazon.com.br/..."
+                        value={formData.amazon_link}
+                        onChange={e => setFormData({ ...formData, amazon_link: e.target.value })}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none focus:ring-1 focus:ring-slate-800 dark:focus:ring-white text-slate-900 dark:text-gray-100"
+                      />
+                    </div>
+                  )}
+
+                  {/* AliExpress */}
+                  {(showLinkInputs.aliexpress || formData.aliexpress_link) && (
+                    <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-2">
+                      <input
+                        type="url"
+                        placeholder="https://pt.aliexpress.com/item/..."
+                        value={formData.aliexpress_link}
+                        onChange={e => setFormData({ ...formData, aliexpress_link: e.target.value })}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-500/30 rounded-lg text-sm outline-none focus:ring-1 focus:ring-red-600 text-slate-900 dark:text-gray-100"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
             </div>
           </div>
         }
@@ -2648,30 +2895,31 @@ const CardapioPage: React.FC = () => {
       />
 
       {/* Toast Notification */}
-      {toast.visible && (
-        <div className="fixed bottom-6 right-6 z-[150] animate-in slide-in-from-bottom-5 duration-300">
-          <div className={`
+      {
+        toast.visible && (
+          <div className="fixed bottom-6 right-6 z-[150] animate-in slide-in-from-bottom-5 duration-300">
+            <div className={`
             flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border
             ${toast.type === 'success' ? 'bg-white dark:bg-slate-800 border-emerald-500 text-emerald-600' : ''}
             ${toast.type === 'error' ? 'bg-white dark:bg-slate-800 border-red-500 text-red-600' : ''}
             ${toast.type === 'info' ? 'bg-white dark:bg-slate-800 border-blue-500 text-blue-600' : ''}
           `}>
-            {toast.type === 'success' && <CheckCircle size={24} className="fill-current" />}
-            {toast.type === 'error' && <AlertTriangle size={24} className="fill-current" />}
-            {toast.type === 'info' && <Info size={24} className="fill-current" />}
-            <div>
-              <p className="font-bold text-sm text-slate-900 dark:text-white">{toast.type === 'success' ? 'Sucesso' : toast.type === 'error' ? 'Erro' : 'Informação'}</p>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{toast.message}</p>
+              {toast.type === 'success' && <CheckCircle size={24} className="fill-current" />}
+              {toast.type === 'error' && <AlertTriangle size={24} className="fill-current" />}
+              {toast.type === 'info' && <Info size={24} className="fill-current" />}
+              <div>
+                <p className="font-bold text-sm text-slate-900 dark:text-white">{toast.type === 'success' ? 'Sucesso' : toast.type === 'error' ? 'Erro' : 'Informação'}</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{toast.message}</p>
+              </div>
+              <button
+                onClick={() => setToast(prev => ({ ...prev, visible: false }))}
+                className="ml-4 p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors"
+              >
+                <X size={16} className="text-slate-400" />
+              </button>
             </div>
-            <button
-              onClick={() => setToast(prev => ({ ...prev, visible: false }))}
-              className="ml-4 p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors"
-            >
-              <X size={16} className="text-slate-400" />
-            </button>
           </div>
-        </div>
-      )
+        )
       }
       {/* Combo Modal - Two Column Layout */}
       {
@@ -3025,7 +3273,31 @@ const CardapioPage: React.FC = () => {
               />
             </div>
 
-
+            {/* Type Selector */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-2">Tipo de Categoria</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setAddCategoryModal({ ...addCategoryModal, type: 'padrao' })}
+                  className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all ${addCategoryModal.type === 'padrao' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                >
+                  <Grid3X3 size={20} />
+                  <span className="text-xs font-bold">Padrão</span>
+                  <span className="text-[9px] opacity-70">Lista de produtos</span>
+                </button>
+                <button
+                  onClick={() => setAddCategoryModal({ ...addCategoryModal, type: 'especial' })}
+                  className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all ${addCategoryModal.type === 'especial' ? 'bg-purple-50 border-purple-500 text-purple-700' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                >
+                  <div className="relative">
+                    <Sparkles size={20} />
+                    <Star size={8} className="absolute -top-1 -right-1 text-amber-400 fill-amber-400" />
+                  </div>
+                  <span className="text-xs font-bold">Especial (Destaque)</span>
+                  <span className="text-[9px] opacity-70">Stories & Multimídia</span>
+                </button>
+              </div>
+            </div>
           </div>
         }
         onConfirm={handleConfirmAddCategoria}

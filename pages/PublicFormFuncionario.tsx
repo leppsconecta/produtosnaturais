@@ -14,24 +14,19 @@ const PublicFormFuncionario: React.FC = () => {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const { data, error } = await supabase
-          .schema('gestaohashi')
-          .from('config')
-          .select('value')
-          .eq('key', 'public_form_enabled')
-          .single();
+        const { data: isEnabled, error } = await supabase.rpc('is_public_form_enabled');
 
-        if (error) throw error;
+        if (error) {
+          console.error('RPC Error:', error);
+          // Default to open if RPC fails? Let's check the result of isEnabled
+          return;
+        }
 
-        const isEnabled = data?.value === 'true';
-        if (!isEnabled) {
+        if (isEnabled === false) {
           setFormClosed(true);
         }
       } catch (err) {
         console.error('Error checking form status:', err);
-        // Fail safe: close form if error? Or keep open? 
-        // Let's close it to be safe, or maybe default to open if we just created it?
-        // The user initialized it to 'true' in migration.
       }
     };
 
@@ -69,8 +64,12 @@ const PublicFormFuncionario: React.FC = () => {
   const [docVerso, setDocVerso] = useState<File | null>(null);
 
   const fetchRoles = async () => {
-    const { data } = await supabase.schema('gestaohashi').from('cargos').select('*').order('name');
-    if (data) setRoles(data);
+    const { data, error } = await supabase.rpc('manage_cargos_mda', { action_type: 'SELECT_ALL' });
+    if (error) {
+      console.error('Erro ao buscar cargos (RPC):', error);
+      return;
+    }
+    if (data) setRoles((data as any[]).map((d: any) => ({ id: d.id, name: d.nome })));
   };
 
   useEffect(() => { fetchRoles(); }, []);
@@ -90,10 +89,10 @@ const PublicFormFuncionario: React.FC = () => {
   const uploadFile = async (file: File) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `docs/${fileName}`;
+    const filePath = `curriculos/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('curriculos')
+      .from('mdaprodutosnaturais')
       .upload(filePath, file);
 
     if (uploadError) {
@@ -101,7 +100,7 @@ const PublicFormFuncionario: React.FC = () => {
     }
 
     const { data } = supabase.storage
-      .from('curriculos')
+      .from('mdaprodutosnaturais')
       .getPublicUrl(filePath);
 
     return data.publicUrl;
@@ -126,33 +125,33 @@ const PublicFormFuncionario: React.FC = () => {
 
       const payload = {
         status: 'Ativo',
-        type: formData.tipoContrato,
-        role: isFreelancer ? 'Freelancer' : formData.funcao,
-        admission_date: isFreelancer ? null : formData.dataEntrada,
-        name: formData.nome,
-        gender: isFreelancer ? null : formData.sexo,
-        birth_date: isFreelancer ? null : (formData.dataNascimento || null),
-        phone: formData.telefone,
+        tipo_contrato: formData.tipoContrato,
+        funcao: isFreelancer ? 'Freelancer' : formData.funcao,
+        data_entrada: isFreelancer ? null : formData.dataEntrada,
+        nome: formData.nome,
+        sexo: isFreelancer ? null : formData.sexo,
+        data_nascimento: isFreelancer ? null : (formData.dataNascimento || null),
+        telefone: formData.telefone,
+        telefone_recado: formData.telefoneRecado,
         email: isFreelancer ? null : formData.email,
-        bank_account_name: formData.titular,
-        bank_name: formData.banco,
-        bank_key_type: formData.pixTipo,
-        bank_key: formData.pixChave,
-        document_type: isFreelancer ? null : formData.docTipo,
-        document: isFreelancer ? null : formData.docNumero,
-        document_front: frenteUrl,
-        document_back: versoUrl,
-        street: isFreelancer ? null : formData.rua,
-        number: isFreelancer ? null : formData.numero,
-        neighborhood: isFreelancer ? null : formData.bairro,
-        city: isFreelancer ? null : formData.cidade,
-        state: isFreelancer ? null : formData.estado,
-        complement: isFreelancer ? null : formData.complemento,
-        // Code generation
-        code: Math.floor(Math.random() * 9000) + 1000
+        titular_conta: formData.titular,
+        banco: formData.banco,
+        pix_tipo: formData.pixTipo,
+        pix_chave: formData.pixChave,
+        documento_tipo: isFreelancer ? null : formData.docTipo,
+        documento_numero: isFreelancer ? null : formData.docNumero,
+        documento_frente_url: frenteUrl,
+        documento_verso_url: versoUrl,
+        rua: isFreelancer ? null : formData.rua,
+        numero: isFreelancer ? null : formData.numero,
+        bairro: isFreelancer ? null : formData.bairro,
+        cidade: isFreelancer ? null : formData.cidade,
+        estado: isFreelancer ? null : formData.estado,
+        complemento: isFreelancer ? null : formData.complemento,
+        codigo: Math.floor(Math.random() * 9000) + 1000
       };
 
-      const { error } = await supabase.schema('gestaohashi').from('equipe').insert(payload);
+      const { error } = await supabase.rpc('insert_funcionario_mda', { payload });
       if (error) throw error;
 
       setSuccess(true);

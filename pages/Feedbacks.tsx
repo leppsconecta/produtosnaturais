@@ -33,11 +33,10 @@ const FeedbacksPage: React.FC = () => {
   const { data: feedbackData = [], isLoading: loadingFeedbacks, refetch: refetchFeedbacks } = useQuery({
     queryKey: ['feedbacks'],
     queryFn: async () => {
-      const { data: result, error } = await supabase
-        .schema('gestaohashi')
-        .from('feedbacks')
-        .select('*')
-        .order('data', { ascending: true }); // Antigos primeiro (padrão solicitado)
+      // 1. Busca feedbacks via RPC para evitar erro de schema (406)
+      const { data: result, error } = await supabase.rpc('manage_feedbacks_mda', {
+        action_type: 'SELECT_ALL'
+      });
 
       if (error) throw error;
 
@@ -50,16 +49,13 @@ const FeedbacksPage: React.FC = () => {
           if (statusA === 'Pendente' && statusB !== 'Pendente') return -1;
           if (statusA !== 'Pendente' && statusB === 'Pendente') return 1;
 
-          // Se ambos forem Pendente ou ambos não forem Pendente, 
-          // a ordenação do Supabase (data ASC) já prevalece, 
-          // mas garantimos aqui por segurança se necessário.
           return 0;
         });
 
-        return sortedResult.map(item => ({
+        return sortedResult.map((item: any) => ({
           ...item,
-          data_original: item.data,
-          data: item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '',
+          data_original: item.data || item.created_at,
+          data: (item.data || item.created_at) ? new Date(item.data || item.created_at).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '',
           tipo: item.tipo ? item.tipo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : 'elogio',
           descricao: item.descricao || ''
         }));
@@ -73,16 +69,15 @@ const FeedbacksPage: React.FC = () => {
   const { data: productReviewsData = [], isLoading: loadingReviews, refetch: refetchReviews } = useQuery({
     queryKey: ['avaliacoes_produto'],
     queryFn: async () => {
-      const { data: result, error } = await supabase
-        .schema('gestaohashi')
-        .from('avaliacoes_produto')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // 1. Busca avaliações via RPC para evitar erro de schema (406)
+      const { data: result, error } = await supabase.rpc('manage_feedbacks_mda', {
+        action_type: 'SELECT_REVIEWS'
+      });
 
       if (error) throw error;
 
       if (result) {
-        return result.map(item => ({
+        return result.map((item: any) => ({
           ...item,
           data: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '',
           tipo: item.tipo || 'Elogio',
@@ -105,7 +100,7 @@ const FeedbacksPage: React.FC = () => {
         'postgres_changes',
         {
           event: '*',
-          schema: 'gestaohashi',
+          schema: 'mdaprodutosnaturais',
           table: 'feedbacks'
         },
         () => {
@@ -120,7 +115,7 @@ const FeedbacksPage: React.FC = () => {
         'postgres_changes',
         {
           event: '*',
-          schema: 'gestaohashi',
+          schema: 'mdaprodutosnaturais',
           table: 'avaliacoes_produto'
         },
         () => {
@@ -137,11 +132,12 @@ const FeedbacksPage: React.FC = () => {
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .schema('gestaohashi')
-        .from('feedbacks')
-        .update({ status: newStatus })
-        .eq('id', id);
+      // 1. Atualiza status via RPC para evitar erro de schema (406)
+      const { error } = await supabase.rpc('manage_feedbacks_mda', {
+        action_type: 'UPDATE_STATUS',
+        f_id: id,
+        payload: { status: newStatus }
+      });
 
       if (error) throw error;
 
@@ -154,11 +150,15 @@ const FeedbacksPage: React.FC = () => {
 
   const handleProductReviewStatusChange = async (id: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .schema('gestaohashi')
-        .from('avaliacoes_produto')
-        .update({ status: newStatus })
-        .eq('id', id);
+      // 2. Atualiza status de avaliação via RPC (reutilizando lógica similar se necessário ou direta por enquanto se avaliacoes for no public)
+      // Como avaliacoes_produto também está no mdaprodutosnaturais, vamos precisar de outra RPC ou expandir a manage_feedbacks mas por simplicidade aqui usarei a lógica direta se o usuário permitir, 
+      // mas como o Erro 406 é fatal, farei uma RPC genérica se necessário.
+      // Por enquanto, vou converter para RPC também para garantir.
+      const { error } = await supabase.rpc('manage_feedbacks_mda', {
+        action_type: 'UPDATE_STATUS_REVIEW', // Precisamos adicionar essa no banco
+        f_id: id,
+        payload: { status: newStatus }
+      });
 
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['avaliacoes_produto'] });

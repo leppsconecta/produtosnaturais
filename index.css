@@ -1,6 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
+/* Habilita dark mode por classe (.dark) ao invés de somente por preferência do sistema */
+@custom-variant dark (&:where(.dark, .dark *));
+
+
 @theme {
   --color-olive-500: #99CC33;
   /* New Green */

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, ShoppingCart, Search, ChevronLeft, ChevronRight, Plus, Minus, X, Trash2 } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Search, ChevronLeft, ChevronRight, Plus, Minus, X, Trash2, ThumbsUp, MessageCircle, ThumbsDown, Send } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
@@ -16,31 +16,55 @@ export default function ProductsPage() {
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
   const [flyingImage, setFlyingImage] = useState<{ src: string, x: number, y: number } | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewType, setReviewType] = useState<'elogio' | 'sugestao' | 'reclamacao' | null>(null);
+  const [reviewText, setReviewText] = useState('');
 
   // Data State
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/categories').then(res => res.json()).then(setCategories).catch(console.error);
-    fetch('/api/products?public=true').then(res => res.json()).then(data => {
-      // Ensure alphabetical order
-      const sorted = data.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    try {
+      const saved = localStorage.getItem('sabordaterra_categorias');
+      if (saved) {
+        const categoriasRaw = JSON.parse(saved);
 
-      // MOCK DATA for external sources
-      const mocked = sorted.map((p: any, idx: number) => {
-        // Mock combinations for demonstration
-        if (idx === 0) return { ...p, shopee_link: 'https://shopee.com.br' };
-        if (idx === 1) return { ...p, shopee_link: 'https://shopee.com.br', mercadolivre_link: 'https://mercadolivre.com.br' };
-        if (idx === 2) return { ...p, shopee_link: 'https://shopee.com.br', mercadolivre_link: 'https://mercadolivre.com.br', amazon_link: 'https://amazon.com.br' };
-        if (idx === 3) return { ...p, shopee_link: 'https://shopee.com.br', mercadolivre_link: 'https://mercadolivre.com.br', amazon_link: 'https://amazon.com.br', aliexpress_link: 'https://aliexpress.com' };
-        // Example with just one different link
-        if (idx === 4) return { ...p, amazon_link: 'https://amazon.com.br' };
-        return p;
-      });
+        // Mapear categorias para o formato esperado:
+        const formattedCategories = categoriasRaw.map((c: any) => ({
+          id: c.id,
+          name: c.nome
+        }));
+        setCategories(formattedCategories);
 
-      setProducts(mocked);
-    }).catch(console.error);
+        // Mapear e preparar produtos:
+        const todosItens = categoriasRaw.flatMap((c: any) =>
+          c.itens.filter((i: any) => i.visivel !== false) // Exibir apenas visíveis
+        );
+
+        const formattedProducts = todosItens.map((item: any) => ({
+          id: item.id,
+          name: item.nome,
+          desc: item.descricao,
+          price: parseFloat(item.preco.replace('.', '').replace(',', '.')),
+          img: item.foto || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+          weight: item.variacoes?.length ? 'Várias opções' : (item.unidade || 'Unid'),
+          category: item.categoria_id || 'todos',
+          // Links externos já virão do próprio produto do Cardápio se salvos lá,
+          // ou manter os originais caso existam no objeto "item".
+          shopee_link: item.shopee_link,
+          mercadolivre_link: item.mercadolivre_link,
+          amazon_link: item.amazon_link,
+          aliexpress_link: item.aliexpress_link,
+        }));
+
+        // Ordenar alfabeticamente
+        const sorted = formattedProducts.sort((a: any, b: any) => a.name.localeCompare(b.name));
+        setProducts(sorted);
+      }
+    } catch (e) {
+      console.error('Erro ao carregar cardápio:', e);
+    }
   }, []);
 
   const filteredProducts = useMemo(() => {
@@ -68,10 +92,10 @@ export default function ProductsPage() {
   const ExternalLinkIcons = ({ product, isBig = false }: { product: any, isBig?: boolean }) => {
     const [showDropdown, setShowDropdown] = useState(false);
     const links = [
-      { id: 'shopee', url: product.shopee_link, color: '#EE4D2D', label: 'Shopee', icon: 'S' },
-      { id: 'mercadolivre', url: product.mercadolivre_link, color: '#FFE600', textColor: '#2D3277', label: 'Mercado Livre', icon: 'M' },
-      { id: 'amazon', url: product.amazon_link, color: '#000000', label: 'Amazon', icon: 'A' },
-      { id: 'aliexpress', url: product.aliexpress_link, color: '#E62E04', label: 'AliExpress', icon: 'al' },
+      { id: 'shopee', url: product.shopee_link, color: '#ffffff', textColor: '#EE4D2D', label: 'Shopee', iconSrc: '/shopee-logo.png' },
+      { id: 'mercadolivre', url: product.mercadolivre_link, color: '#ffffff', textColor: '#2D3277', label: 'Mercado Livre', iconSrc: '/mercadolivre-logo.png' },
+      { id: 'amazon', url: product.amazon_link, color: '#ffffff', textColor: '#000000', label: 'Amazon', iconSrc: '/amazon-logo.png' },
+      { id: 'aliexpress', url: product.aliexpress_link, color: '#ffffff', textColor: '#E62E04', label: 'AliExpress', iconSrc: '/aliexpress-logo.png' },
     ].filter(l => l.url);
 
     if (links.length === 0) return null;
@@ -81,8 +105,8 @@ export default function ProductsPage() {
 
     return (
       <div className="relative">
-        {/* Desktop View: Show all icons */}
-        <div className="hidden md:flex items-center gap-2">
+        {/* Desktop View & Modal View: Show all icons in a row */}
+        <div className={`${isBig ? 'flex' : 'hidden md:flex'} items-center ${isBig ? 'gap-3' : 'gap-2'}`}>
           {links.map(link => (
             <a
               key={link.id}
@@ -90,82 +114,79 @@ export default function ProductsPage() {
               target="_blank"
               rel="noopener noreferrer"
               title={link.label}
-              className="flex items-center justify-center rounded-xl transition-transform hover:scale-105 shadow-sm border border-black/5 flex-shrink-0"
+              className={`flex items-center justify-center ${isBig ? 'rounded-2xl' : 'rounded-xl'} transition-transform hover:scale-105 shadow-sm border border-black/5 flex-shrink-0 bg-white overflow-hidden`}
               style={{
-                backgroundColor: link.color,
                 width: isBig ? '56px' : '40px',
                 height: isBig ? '56px' : '40px',
-                color: link.textColor || 'white'
               }}
             >
-              <span className={`font-black uppercase ${isBig ? 'text-2xl' : 'text-sm'}`}>{link.icon}</span>
+              <img src={link.iconSrc} alt={link.label} className="w-full h-full object-contain p-1" />
             </a>
           ))}
         </div>
 
-        {/* Mobile View: Show only first link + toggle for others */}
-        <div className="md:hidden">
-          <button
-            onClick={() => {
-              if (otherLinks.length > 0) {
-                setShowDropdown(!showDropdown);
-              } else {
-                window.open(firstLink.url, '_blank', 'noopener,noreferrer');
-              }
-            }}
-            className="flex items-center justify-center rounded-xl shadow-sm border border-black/5 flex-shrink-0"
-            style={{
-              backgroundColor: firstLink.color,
-              width: '40px',
-              height: '40px',
-              color: firstLink.textColor || 'white'
-            }}
-          >
-            <span className="font-black uppercase text-sm">{firstLink.icon}</span>
-            {otherLinks.length > 0 && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white" />
-            )}
-          </button>
+        {/* Mobile View (Small Card Only): Show only first link + toggle for others */}
+        {!isBig && (
+          <div className="md:hidden">
+            <button
+              onClick={() => {
+                if (otherLinks.length > 0) {
+                  setShowDropdown(!showDropdown);
+                } else {
+                  window.open(firstLink.url, '_blank', 'noopener,noreferrer');
+                }
+              }}
+              className="flex items-center justify-center rounded-xl shadow-sm border border-black/5 flex-shrink-0 bg-white overflow-hidden"
+              style={{
+                width: '40px',
+                height: '40px',
+              }}
+            >
+              <img src={firstLink.iconSrc} alt={firstLink.label} className="w-full h-full object-contain p-1" />
+              {otherLinks.length > 0 && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white" />
+              )}
+            </button>
 
-          <AnimatePresence>
-            {showDropdown && otherLinks.length > 0 && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setShowDropdown(false)}
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-white rounded-2xl shadow-2xl z-50 border border-earth-100 flex flex-col gap-1 min-w-[170px] max-w-[90vw]"
-                >
-                  <div className="text-[10px] font-bold text-earth-400 px-3 uppercase mb-1 border-b border-earth-50 pb-1">Onde comprar:</div>
-                  {links.map(link => (
-                    <a
-                      key={link.id}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setShowDropdown(false)}
-                      className={`flex items-center gap-3 p-2.5 hover:bg-earth-50 rounded-xl transition-colors ${link.id === firstLink.id ? 'bg-earth-50/50' : ''}`}
-                    >
-                      <div
-                        className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-black shadow-sm"
-                        style={{ backgroundColor: link.color, color: link.textColor || 'white' }}
+            <AnimatePresence>
+              {showDropdown && otherLinks.length > 0 && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowDropdown(false)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-white rounded-2xl shadow-2xl z-50 border border-earth-100 flex flex-col gap-1 min-w-[170px] max-w-[90vw]"
+                  >
+                    <div className="text-[10px] font-bold text-earth-400 px-3 uppercase mb-1 border-b border-earth-50 pb-1">Onde comprar:</div>
+                    {links.map(link => (
+                      <a
+                        key={link.id}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setShowDropdown(false)}
+                        className={`flex items-center gap-3 p-2.5 hover:bg-earth-50 rounded-xl transition-colors ${link.id === firstLink.id ? 'bg-earth-50/50' : ''}`}
                       >
-                        {link.icon}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-olive-900 leading-tight">{link.label}</span>
-                      </div>
-                    </a>
-                  ))}
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
-        </div>
+                        <div
+                          className="w-9 h-9 rounded-lg flex items-center justify-center shadow-sm bg-white border border-earth-100 overflow-hidden"
+                        >
+                          <img src={link.iconSrc} alt={link.label} className="w-full h-full object-contain p-1" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-olive-900 leading-tight">{link.label}</span>
+                        </div>
+                      </a>
+                    ))}
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     );
   };
@@ -230,7 +251,7 @@ export default function ProductsPage() {
             />
             <motion.div
               layoutId={`product-${selectedProduct.id}`}
-              className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[80vh]"
+              className="relative w-full max-w-[360px] sm:max-w-md md:max-w-none md:w-[900px] md:h-[600px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[600px]"
             >
               <button
                 onClick={handleCloseModal}
@@ -239,7 +260,7 @@ export default function ProductsPage() {
                 <X className="w-6 h-6 text-olive-900" />
               </button>
 
-              <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-earth-100 overflow-hidden">
+              <div className="w-full md:w-1/2 h-52 md:h-full relative bg-earth-100 overflow-hidden flex-shrink-0">
                 {/* Navigation Buttons */}
                 <button
                   onClick={handlePrevProduct}
@@ -261,7 +282,7 @@ export default function ProductsPage() {
                 />
               </div>
 
-              <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col overflow-y-auto">
+              <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col h-full overflow-y-auto">
                 <div className="mb-4">
                   <span className="text-sm font-bold text-mustard-600 uppercase tracking-wider bg-mustard-500/10 px-3 py-1 rounded-full">
                     {categories.find(c => c.id === selectedProduct.category)?.name}
@@ -276,26 +297,26 @@ export default function ProductsPage() {
                 </div>
 
                 <div className="mt-auto pt-6 border-t border-earth-100">
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center justify-center md:justify-start gap-4 mb-6">
                     <span className="text-sm font-medium text-earth-600">Quantidade:</span>
                     <div className="flex items-center gap-3 bg-earth-50 rounded-lg p-1">
                       <button
                         onClick={() => handleQuantityChange(selectedProduct.id, -1)}
-                        className="w-10 h-10 flex items-center justify-center rounded-md bg-white text-olive-900 hover:bg-earth-100 transition-colors shadow-sm"
+                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-white text-olive-900 hover:bg-earth-100 transition-colors shadow-sm"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
-                      <span className="font-bold text-olive-900 w-8 text-center text-lg">{quantities[selectedProduct.id] || 1}</span>
+                      <span className="font-bold text-olive-900 w-10 text-center text-xl">{quantities[selectedProduct.id] || 1}</span>
                       <button
                         onClick={() => handleQuantityChange(selectedProduct.id, 1)}
-                        className="w-10 h-10 flex items-center justify-center rounded-md bg-white text-olive-900 hover:bg-earth-100 transition-colors shadow-sm"
+                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-white text-olive-900 hover:bg-earth-100 transition-colors shadow-sm"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center md:justify-start gap-3 w-full">
                     {(() => {
                       const marketplaceLinks = [selectedProduct.shopee_link, selectedProduct.mercadolivre_link, selectedProduct.amazon_link, selectedProduct.aliexpress_link].filter(Boolean);
                       const numLinks = marketplaceLinks.length;
@@ -312,17 +333,17 @@ export default function ProductsPage() {
                                 handleAddToCart(selectedProduct, e);
                               }
                             }}
-                            className={`flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl group font-bold ${numLinks > 0 && !isInCart(selectedProduct.id)
-                              ? 'w-[56px] h-[56px] md:flex-grow md:h-auto md:py-4 md:px-6'
-                              : 'flex-grow py-4 px-6'
-                              } rounded-xl text-lg ${isInCart(selectedProduct.id)
+                            className={`flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl group font-black rounded-2xl text-lg ${numLinks > 0 && !isInCart(selectedProduct.id)
+                              ? 'w-14 h-14 md:flex-grow md:h-14 px-6'
+                              : 'flex-grow h-14 px-6'
+                              } ${isInCart(selectedProduct.id)
                                 ? 'bg-red-500 hover:bg-red-600 text-white'
                                 : 'bg-mustard-500 hover:bg-mustard-600 text-olive-900'
                               }`}
                           >
                             {isInCart(selectedProduct.id) ? <Trash2 className="w-6 h-6" /> : <ShoppingCart className="w-6 h-6" />}
                             <span className={`${(numLinks > 0 && !isInCart(selectedProduct.id)) ? 'hidden md:inline' : 'inline'}`}>
-                              {isInCart(selectedProduct.id) ? 'Remover' : 'Adicionar ao Carrinho'}
+                              {isInCart(selectedProduct.id) ? 'Remover' : (numLinks >= 2 ? 'Adicionar' : 'Adicionar ao Carrinho')}
                             </span>
                           </button>
                         </>
@@ -330,7 +351,132 @@ export default function ProductsPage() {
                     })()}
                   </div>
 
+                  {/* Avaliar Produto Link */}
+                  <div className="mt-4 text-center">
+                    <button
+                      onClick={() => setIsReviewModalOpen(true)}
+                      className="text-xs font-semibold text-earth-500 hover:text-mustard-600 transition-colors underline decoration-earth-300 hover:decoration-mustard-600 underline-offset-4"
+                    >
+                      Avalie este produto
+                    </button>
+                  </div>
+
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Review Modal */}
+      <AnimatePresence>
+        {isReviewModalOpen && selectedProduct && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsReviewModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-earth-100">
+                <h3 className="text-xl font-bold text-olive-900">Avaliar Produto</h3>
+                <button
+                  onClick={() => setIsReviewModalOpen(false)}
+                  className="p-2 bg-earth-50 hover:bg-earth-100 rounded-full transition-colors text-earth-500"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[80vh]">
+                {/* Product Info */}
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden border border-earth-100 flex-shrink-0">
+                    <img src={selectedProduct.img} alt={selectedProduct.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-olive-900">{selectedProduct.name}</h4>
+                    <p className="text-sm text-earth-500">Compartilhe sua experiência</p>
+                  </div>
+                </div>
+
+                {/* Tipo de Avaliação */}
+                <div className="mb-6">
+                  <label className="block text-xs font-bold text-earth-500 uppercase tracking-wider mb-3">
+                    Tipo de avaliação
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <button
+                      onClick={() => setReviewType('elogio')}
+                      className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border-2 transition-all ${reviewType === 'elogio'
+                        ? 'border-green-500 bg-green-50 text-green-700'
+                        : 'border-earth-100 bg-white text-earth-500 hover:border-green-200 hover:bg-green-50/50'
+                        }`}
+                    >
+                      <ThumbsUp className={`w-6 h-6 ${reviewType === 'elogio' ? 'text-green-500' : ''}`} />
+                      <span className="text-[10px] font-bold">ELOGIO</span>
+                    </button>
+
+                    <button
+                      onClick={() => setReviewType('sugestao')}
+                      className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border-2 transition-all ${reviewType === 'sugestao'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-earth-100 bg-white text-earth-500 hover:border-blue-200 hover:bg-blue-50/50'
+                        }`}
+                    >
+                      <MessageCircle className={`w-6 h-6 ${reviewType === 'sugestao' ? 'text-blue-500' : ''}`} />
+                      <span className="text-[10px] font-bold">SUGESTÃO</span>
+                    </button>
+
+                    <button
+                      onClick={() => setReviewType('reclamacao')}
+                      className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border-2 transition-all ${reviewType === 'reclamacao'
+                        ? 'border-red-500 bg-red-50 text-red-700'
+                        : 'border-earth-100 bg-white text-earth-500 hover:border-red-200 hover:bg-red-50/50'
+                        }`}
+                    >
+                      <ThumbsDown className={`w-6 h-6 ${reviewType === 'reclamacao' ? 'text-red-500' : ''}`} />
+                      <span className="text-[10px] font-bold">RECLAMAÇÃO</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sua Avaliação */}
+                <div className="mb-6">
+                  <label className="block text-xs font-bold text-earth-500 uppercase tracking-wider mb-3">
+                    Sua avaliação
+                  </label>
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="O que você achou deste produto? Sabor, apresentação, etc..."
+                    className="w-full h-32 p-4 bg-white border border-earth-200 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-mustard-500/20 focus:border-mustard-500 resize-none shadow-sm placeholder:text-earth-400"
+                  />
+                </div>
+
+                {/* Submit */}
+                <button
+                  disabled={!reviewType || !reviewText.trim()}
+                  onClick={() => {
+                    // MOCK submit action
+                    setIsReviewModalOpen(false);
+                    setReviewType(null);
+                    setReviewText('');
+                    alert('Avaliação enviada com sucesso!');
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-mustard-500 hover:bg-mustard-600 disabled:opacity-50 disabled:cursor-not-allowed text-olive-900 font-bold rounded-2xl transition-colors shadow-sm"
+                >
+                  <Send className="w-5 h-5" />
+                  Enviar Avaliação
+                </button>
               </div>
             </motion.div>
           </div>
@@ -412,11 +558,16 @@ export default function ProductsPage() {
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold text-olive-900 shadow-sm">
+                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold text-olive-900 shadow-sm z-10">
                       {product.weight}
                     </div>
+                    {/* Price Badge */}
+                    <div className="absolute bottom-2 right-2 bg-[#8cc63f] text-white px-2 py-1 rounded-lg shadow-md border border-[#76a832] font-black tracking-tight flex items-baseline gap-0.5 z-20">
+                      <span className="text-[9px] font-bold">R$</span>
+                      <span className="text-lg leading-none">{(product.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
                   </div>
-                  <div className="p-4 md:p-6 flex flex-col flex-grow">
+                  <div className="p-4 md:p-6 flex flex-col flex-grow pt-5">
                     <div className="mb-2">
                       <span className="text-xs font-semibold text-mustard-600 uppercase tracking-wider bg-mustard-500/10 px-2 py-1 rounded-md">
                         {categories.find(c => c.id === product.category)?.name}
@@ -468,8 +619,8 @@ export default function ProductsPage() {
                               }}
                               title={isInCart(product.id) ? 'Remover do Carrinho' : 'Adicionar ao Carrinho'}
                               className={`flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md rounded-xl font-bold h-10 md:h-[40px] ${(numLinks > 0 && !isInCart(product.id))
-                                  ? (numLinks < 3 ? 'flex-grow min-w-[100px] px-2' : 'w-10 md:w-[40px] flex-shrink-0')
-                                  : 'flex-grow min-w-[100px] px-4'
+                                ? (numLinks < 3 ? 'flex-grow min-w-[100px] px-2' : 'w-10 md:w-[40px] flex-shrink-0')
+                                : 'flex-grow min-w-[100px] px-4'
                                 } ${isInCart(product.id)
                                   ? 'bg-red-500 text-white hover:bg-red-600'
                                   : 'bg-mustard-500 hover:bg-mustard-600 text-olive-900 border border-mustard-600/10'
@@ -519,7 +670,6 @@ export default function ProductsPage() {
         )}
       </main>
 
-      <Footer />
       <FloatingWhatsApp />
     </div>
   );
