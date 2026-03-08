@@ -657,7 +657,7 @@ const FuncionarioForm = React.forwardRef<HTMLFormElement, { onSuccess: () => voi
 
 
 
-const ShareModalContent: React.FC<{ initialEnabled: boolean, link: string }> = ({ initialEnabled, link }) => {
+const ShareModalContent: React.FC<{ initialEnabled: boolean, link: string, onStatusChange?: (enabled: boolean) => void }> = ({ initialEnabled, link, onStatusChange }) => {
   const [enabled, setEnabled] = useState(initialEnabled);
   const [loading, setLoading] = useState(false);
 
@@ -667,13 +667,14 @@ const ShareModalContent: React.FC<{ initialEnabled: boolean, link: string }> = (
     setEnabled(newState); // Optimistic update
 
     try {
-      await supabase
-        .schema('gestaohashi')
-        .from('config')
-        .upsert({ key: 'public_form_enabled', value: String(newState) });
+      const { data, error } = await supabase.rpc('update_public_form_status', { is_enabled: newState });
+      if (error) throw error;
+      console.log('Update result:', data);
+      if (onStatusChange) onStatusChange(newState);
     } catch (err) {
       console.error(err);
-      setEnabled(!newState); // Revert on error
+      setEnabled(!enabled); // Revert on error
+      alert('Erro ao atualizar status do formulário.');
     } finally {
       setLoading(false);
     }
@@ -773,7 +774,15 @@ const FuncionariosPage: React.FC = () => {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  const fetchFormStatus = async () => {
+    const { data: isEnabled, error } = await supabase.rpc('is_public_form_enabled');
+    if (!error) setPublicLinkEnabled(!!isEnabled);
+  };
+
+  useEffect(() => {
+    loadData();
+    fetchFormStatus();
+  }, []);
 
   const handleAction = async (type: 'view' | 'edit' | 'delete', item: Funcionario) => {
     if (type === 'delete') {
@@ -890,7 +899,13 @@ const FuncionariosPage: React.FC = () => {
       type: 'view-content',
       title: 'Compartilhar Cadastro',
       maxWidth: 'max-w-md',
-      content: <ShareModalContent initialEnabled={publicLinkEnabled} link={link} />
+      content: (
+        <ShareModalContent
+          initialEnabled={publicLinkEnabled}
+          link={link}
+          onStatusChange={setPublicLinkEnabled}
+        />
+      )
     });
   };
 

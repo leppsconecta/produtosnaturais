@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Home from './pages/Home';
 import ProductsPage from './pages/ProductsPage';
@@ -15,6 +15,8 @@ import CurriculosPage from './pages/Curriculos';
 import TrabalheConoscoPage from './pages/TrabalheConosco';
 import PublicFormFuncionario from './pages/PublicFormFuncionario';
 import AdminLayout from './components/AdminLayout';
+import PublicLayout from './components/PublicLayout';
+
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -44,11 +46,17 @@ export default function App() {
             <ScrollToTop />
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/produtos" element={<ProductsPage />} />
-              <Route path="/quemsomos" element={<AboutPage />} />
-              <Route path="/curriculo" element={<TrabalheConoscoPage />} />
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/produtos" element={<ProductsPage />} />
+                <Route path="/quemsomos" element={<AboutPage />} />
+                <Route path="/curriculo" element={<TrabalheConoscoPage />} />
+              </Route>
+
+              {/* Standalone Public Routes (No Header/Footer) */}
               <Route path="/form-funcionario" element={<PublicFormFuncionario />} />
+
+              {/* Login Route (Outside Layouts) */}
               <Route path="/admin/login" element={<AdminLogin />} />
 
               {/* Admin Routes */}

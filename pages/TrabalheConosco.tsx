@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Briefcase, Upload, Send, CheckCircle, XCircle } from 'lucide-react';
-import Navbar from '../components/Navbar';
+import { Send, CheckCircle2, AlertCircle, FileText, User as UserIcon, Mail, Phone, MapPin, Loader2, Upload, Briefcase } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function TrabalheConosco() {
@@ -51,7 +50,7 @@ export default function TrabalheConosco() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (isSubmitting || isSubmitted) return; // bloqueio de duplo clique já existente, reforçando.
+        if (isSubmitting || isSubmitted) return;
 
         setIsSubmitting(true);
         setError(null);
@@ -60,7 +59,6 @@ export default function TrabalheConosco() {
             let anexo_url: string | null = null;
             let anexo_nome: string | null = null;
 
-            // 1. Upload do currículo para o Storage
             if (file) {
                 const ext = file.name.split('.').pop();
                 const filePath = `curriculos/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
@@ -79,7 +77,6 @@ export default function TrabalheConosco() {
                 anexo_nome = file.name;
             }
 
-            // 2. Salvar no banco via RPC para evitar erro de schema (406)
             const { error: insertError } = await supabase
                 .rpc('insert_curriculo_mda', {
                     payload: {
@@ -109,10 +106,7 @@ export default function TrabalheConosco() {
 
     return (
         <div className="min-h-screen font-sans text-earth-800 bg-white selection:bg-mustard-500/30 selection:text-olive-900 flex flex-col">
-            <Navbar />
-
             <main className="flex-grow pt-32 pb-20 px-4 sm:px-6 lg:px-8 w-full max-w-6xl mx-auto flex flex-col items-center">
-
                 <AnimatePresence mode="wait">
                     {!isSubmitted ? (
                         <motion.div
@@ -124,7 +118,7 @@ export default function TrabalheConosco() {
                         >
                             <div className="text-center mb-10 w-full max-w-2xl">
                                 <span className="text-olive-600 font-semibold tracking-wider text-sm uppercase mb-2 block">Vagas Empório MDA</span>
-                                <h1 className="text-3xl md:text-5xl font-black text-[#5A178A] mb-4">
+                                <h1 className="text-3xl md:text-5xl font-black text-[#8cc63f] mb-4">
                                     Trabalhe Conosco
                                 </h1>
                                 <p className="text-base text-gray-500 font-light">
@@ -132,26 +126,19 @@ export default function TrabalheConosco() {
                                 </p>
                             </div>
 
-                            {/* Error Banner */}
                             {error && (
                                 <div className="w-full mb-6 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-xl">
-                                    <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                                     <p className="text-sm font-medium">{error}</p>
                                 </div>
                             )}
 
-                            {/* Form Container */}
                             <div className="w-full">
                                 <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        {/* Coluna Principal da Esquerda: Dados Essenciais */}
                                         <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                            {/* Nome Completo */}
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-sm font-semibold text-gray-700">
-                                                    Nome Completo *
-                                                </label>
+                                                <label className="text-sm font-semibold text-gray-700">Nome Completo *</label>
                                                 <input
                                                     type="text"
                                                     name="nome"
@@ -163,11 +150,8 @@ export default function TrabalheConosco() {
                                                 />
                                             </div>
 
-                                            {/* Telefone */}
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-sm font-semibold text-gray-700">
-                                                    Telefone *
-                                                </label>
+                                                <label className="text-sm font-semibold text-gray-700">Telefone *</label>
                                                 <input
                                                     type="tel"
                                                     name="telefone"
@@ -179,11 +163,8 @@ export default function TrabalheConosco() {
                                                 />
                                             </div>
 
-                                            {/* Cidade */}
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-sm font-semibold text-gray-700">
-                                                    Cidade *
-                                                </label>
+                                                <label className="text-sm font-semibold text-gray-700">Cidade *</label>
                                                 <input
                                                     type="text"
                                                     name="cidade"
@@ -195,11 +176,8 @@ export default function TrabalheConosco() {
                                                 />
                                             </div>
 
-                                            {/* Bairro */}
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-sm font-semibold text-gray-700">
-                                                    Bairro *
-                                                </label>
+                                                <label className="text-sm font-semibold text-gray-700">Bairro *</label>
                                                 <input
                                                     type="text"
                                                     name="bairro"
@@ -211,11 +189,8 @@ export default function TrabalheConosco() {
                                                 />
                                             </div>
 
-                                            {/* Cargo de Interesse */}
                                             <div className="flex flex-col gap-1.5 sm:col-span-2">
-                                                <label className="text-sm font-semibold text-gray-700">
-                                                    Cargo de Interesse *
-                                                </label>
+                                                <label className="text-sm font-semibold text-gray-700">Cargo de Interesse *</label>
                                                 <select
                                                     name="cargo"
                                                     required
@@ -230,31 +205,22 @@ export default function TrabalheConosco() {
                                                 </select>
                                             </div>
 
-                                            {/* Mensagem Adicional */}
                                             <div className="flex flex-col gap-1.5 sm:col-span-2">
-                                                <label className="text-sm font-semibold text-gray-700">
-                                                    Resumo Profissional
-                                                </label>
+                                                <label className="text-sm font-semibold text-gray-700">Resumo Profissional</label>
                                                 <textarea
                                                     name="mensagem"
                                                     value={formData.mensagem}
                                                     onChange={handleChange}
-                                                    placeholder="Conte-nos brevemente suas experiências e por que quer trabalhar conosco..."
+                                                    placeholder="Conte-nos brevemente suas experiências..."
                                                     rows={2}
                                                     className="w-full bg-transparent border-b-2 border-gray-200 px-0 py-2 text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#8cc63f] transition-colors resize-y min-h-[60px]"
                                                 />
                                             </div>
-
                                         </div>
 
-                                        {/* Coluna Secundária da Direita */}
                                         <div className="md:col-span-1 flex flex-col gap-6 md:pl-6 md:border-l border-gray-100">
-
-                                            {/* Sexo */}
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-sm font-semibold text-gray-700">
-                                                    Sexo *
-                                                </label>
+                                                <label className="text-sm font-semibold text-gray-700">Sexo *</label>
                                                 <div className="flex flex-wrap gap-4">
                                                     {['Masculino', 'Feminino'].map((opt) => (
                                                         <label key={opt} className="flex items-center gap-2 cursor-pointer group">
@@ -268,11 +234,8 @@ export default function TrabalheConosco() {
                                                 </div>
                                             </div>
 
-                                            {/* Faixa Etária */}
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-sm font-semibold text-gray-700">
-                                                    Faixa Etária *
-                                                </label>
+                                                <label className="text-sm font-semibold text-gray-700">Faixa Etária *</label>
                                                 <div className="grid grid-cols-2 gap-y-2 gap-x-4">
                                                     {['13 a 17 anos', '18 a 24 anos', '25 a 34 anos', '35 a 44 anos', '45 a 54 anos', '+ de 60 anos'].map((idade) => (
                                                         <label key={idade} className="flex items-center gap-2 cursor-pointer group">
@@ -287,11 +250,8 @@ export default function TrabalheConosco() {
                                             </div>
 
                                             <div className="mt-auto pt-6 flex flex-col gap-4">
-                                                {/* Anexar Currículo */}
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-sm font-semibold text-gray-700">
-                                                        Currículo (PDF/DOC)
-                                                    </label>
+                                                    <label className="text-sm font-semibold text-gray-700">Currículo (PDF/DOC)</label>
                                                     <div className="relative group w-full">
                                                         <input
                                                             ref={fileRef}
@@ -309,29 +269,20 @@ export default function TrabalheConosco() {
                                                     </div>
                                                 </div>
 
-                                                {/* Submit Button */}
                                                 <button
                                                     type="submit"
                                                     disabled={isSubmitting}
                                                     className="w-full mt-2 px-8 bg-[#8cc63f] hover:bg-[#7bc024] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 text-base shadow-sm"
                                                 >
                                                     {isSubmitting ? (
-                                                        <>
-                                                            <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                                                            Enviando...
-                                                        </>
+                                                        <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>
                                                     ) : (
-                                                        <>
-                                                            Enviar Candidatura
-                                                            <Send className="w-4 h-4 ml-1" />
-                                                        </>
+                                                        <>Enviar Candidatura <Send className="w-4 h-4 ml-1" /></>
                                                     )}
                                                 </button>
                                             </div>
-
                                         </div>
                                     </div>
-
                                 </form>
                             </div>
                         </motion.div>
@@ -344,11 +295,11 @@ export default function TrabalheConosco() {
                         >
                             <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-8 relative">
                                 <div className="absolute inset-0 rounded-full border-4 border-[#8cc63f] opacity-20 animate-ping" />
-                                <CheckCircle className="w-12 h-12 text-[#8cc63f]" />
+                                <CheckCircle2 className="w-12 h-12 text-[#8cc63f]" />
                             </div>
-                            <h2 className="text-3xl font-black text-[#5A178A] mb-4">Currículo Enviado!</h2>
+                            <h2 className="text-3xl font-black text-[#8cc63f] mb-4">Currículo Enviado!</h2>
                             <p className="text-gray-600 text-lg mb-8 leading-relaxed font-light">
-                                Obrigado pelo seu interesse em fazer parte da equipe do <span className="font-semibold text-gray-900">Empório MDA</span>. Nossa equipe de RH irá analisar seu perfil e, caso haja uma oportunidade alinhada, entraremos em contato.
+                                Obrigado pelo seu interesse em fazer parte da equipe do <span className="font-semibold text-gray-900">Empório MDA</span>.
                             </p>
                         </motion.div>
                     )}
