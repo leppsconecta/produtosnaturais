@@ -260,7 +260,11 @@ export default function ProductsPage() {
             />
             <motion.div
               layoutId={`product-${selectedProduct.id}`}
-              className="relative w-full max-w-[420px] md:max-w-[700px] bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
+              className={`relative w-full max-w-[420px] md:max-w-[700px] bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row transition-all duration-300 ${
+                (selectedProduct.variacoes?.length > 0 || isDescExpanded) 
+                  ? 'max-h-[90vh] md:h-[500px]' 
+                  : 'max-h-[90vh] md:h-[320px]'
+              }`}
             >
               <button
                 onClick={handleCloseModal}
