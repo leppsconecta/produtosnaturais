@@ -143,20 +143,23 @@ export default function CartSidebar() {
                     </div>
                   ) : (
                     cart.map((item) => (
-                      <div key={item.id} className="flex items-start gap-3 bg-offwhite p-3 rounded-lg border border-earth-100">
+                      <div key={`${item.id}-${item.variationName || ''}`} className="flex items-start gap-3 bg-offwhite p-3 rounded-lg border border-earth-100">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-olive-900 text-sm truncate">{item.name}</h3>
+                          <h3 className="font-bold text-olive-900 text-sm truncate">
+                            {item.name}
+                            {item.variationName && <span className="text-mustard-600 text-[10px] ml-2 uppercase">({item.variationName})</span>}
+                          </h3>
                           <p className="text-xs text-earth-500 mb-2">{item.weight}</p>
                           <div className="flex items-center gap-2">
                             <button 
-                              onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                              onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1), item.variationName)}
                               className="w-6 h-6 rounded-full border border-earth-200 flex items-center justify-center hover:bg-earth-100 text-olive-900 text-sm"
                             >
                               -
                             </button>
                             <span className="font-medium w-6 text-center text-sm">{item.quantity}</span>
                             <button 
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.id, item.quantity + 1, item.variationName)}
                               className="w-6 h-6 rounded-full border border-earth-200 flex items-center justify-center hover:bg-earth-100 text-olive-900 text-sm"
                             >
                               +
@@ -164,7 +167,7 @@ export default function CartSidebar() {
                           </div>
                         </div>
                         <button 
-                          onClick={() => removeFromCart(item.id)}
+                          onClick={() => removeFromCart(item.id, item.variationName)}
                           className="text-earth-400 hover:text-red-500 transition-colors p-1"
                           title="Remover item"
                         >

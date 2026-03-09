@@ -41,6 +41,7 @@ export default function ProductsPage() {
           weight: item.variacoes?.length ? 'Várias opções' : 'Unid',
           category: item.categoria_id || 'sem-categoria',
           favorito: item.favorito || false,
+          variacoes: item.variacoes || [],
           shopee_link: item.shopee_link,
           mercadolivre_link: item.mercadolivre_link,
           amazon_link: item.amazon_link,
@@ -208,16 +209,20 @@ export default function ProductsPage() {
     setQuantities(prev => ({ ...prev, [product.id]: 1 }));
   };
 
-  const isInCart = (productId: number) => {
-    return cart.some(item => item.id === productId);
+  const isInCart = (productId: number | string, variationName?: string) => {
+    return cart.some(item => item.id === productId && item.variationName === variationName);
   };
+
+  const [selectedVariation, setSelectedVariation] = useState<any | null>(null);
 
   const handleOpenModal = (product: any) => {
     setSelectedProduct(product);
+    setSelectedVariation(null);
   };
 
   const handleCloseModal = () => {
     setSelectedProduct(null);
+    setSelectedVariation(null);
   };
 
   const handleNextProduct = (e: React.MouseEvent) => {
@@ -294,9 +299,30 @@ export default function ProductsPage() {
                 <h2 className="text-2xl md:text-3xl font-bold text-olive-900 mb-2">{selectedProduct.name}</h2>
                 <p className="text-earth-500 font-medium mb-6">{selectedProduct.weight}</p>
 
-                <div className="prose prose-earth mb-8">
-                  <p className="text-earth-800 leading-relaxed">{selectedProduct.desc}</p>
-                </div>
+                {selectedProduct.variacoes && selectedProduct.variacoes.length > 0 && (
+                  <div className="mb-6">
+                    <p className="text-sm font-bold text-earth-400 uppercase tracking-wider mb-3">Escolha uma opção:</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {selectedProduct.variacoes.map((v: any, idx: number) => (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedVariation(v)}
+                          className={`flex justify-between items-center p-4 rounded-2xl border-2 transition-all ${
+                            selectedVariation?.nome === v.nome 
+                              ? 'border-mustard-500 bg-mustard-50' 
+                              : 'border-earth-100 bg-white hover:border-earth-200'
+                          }`}
+                        >
+                          <div className="flex flex-col items-start">
+                            <span className={`font-bold ${selectedVariation?.nome === v.nome ? 'text-olive-900' : 'text-earth-700'}`}>{v.nome}</span>
+                            <span className="text-xs text-earth-500">{v.qtd} {v.unidade}</span>
+                          </div>
+                          <span className="font-black text-olive-900">R$ {parseFloat(v.preco).toFixed(2).replace('.', ',')}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-auto pt-6 border-t border-earth-100">
                   <div className="flex items-center justify-center md:justify-start gap-4 mb-6">
@@ -329,23 +355,30 @@ export default function ProductsPage() {
 
                           <button
                             onClick={(e) => {
-                              if (isInCart(selectedProduct.id)) {
-                                removeFromCart(selectedProduct.id);
+                              if (isInCart(selectedProduct.id, selectedVariation?.nome)) {
+                                removeFromCart(selectedProduct.id, selectedVariation?.nome);
                               } else {
-                                handleAddToCart(selectedProduct, e);
+                                const quantity = quantities[selectedProduct.id] || 1;
+                                addToCart(selectedProduct, quantity, selectedVariation);
+                                setQuantities(prev => ({ ...prev, [selectedProduct.id]: 1 }));
                               }
                             }}
-                            className={`flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl group font-black rounded-2xl text-lg ${numLinks > 0 && !isInCart(selectedProduct.id)
+                            disabled={selectedProduct.variacoes?.length > 0 && !selectedVariation}
+                            className={`flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl group font-black rounded-2xl text-lg ${numLinks > 0 && !isInCart(selectedProduct.id, selectedVariation?.nome)
                               ? 'w-14 h-14 md:flex-grow md:h-14 px-6'
                               : 'flex-grow h-14 px-6'
-                              } ${isInCart(selectedProduct.id)
+                              } ${isInCart(selectedProduct.id, selectedVariation?.nome)
                                 ? 'bg-red-500 hover:bg-red-600 text-white'
                                 : 'bg-mustard-500 hover:bg-mustard-600 text-olive-900'
-                              }`}
+                              } ${selectedProduct.variacoes?.length > 0 && !selectedVariation ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
                           >
-                            {isInCart(selectedProduct.id) ? <Trash2 className="w-6 h-6" /> : <ShoppingCart className="w-6 h-6" />}
-                            <span className={`${(numLinks > 0 && !isInCart(selectedProduct.id)) ? 'hidden md:inline' : 'inline'}`}>
-                              {isInCart(selectedProduct.id) ? 'Remover' : (numLinks >= 2 ? 'Adicionar' : 'Adicionar ao Carrinho')}
+                            {isInCart(selectedProduct.id, selectedVariation?.nome) ? <Trash2 className="w-6 h-6" /> : <ShoppingCart className="w-6 h-6" />}
+                            <span className={`${(numLinks > 0 && !isInCart(selectedProduct.id, selectedVariation?.nome)) ? 'hidden md:inline' : 'inline'}`}>
+                              {isInCart(selectedProduct.id, selectedVariation?.nome) 
+                                ? 'Remover' 
+                                : (selectedProduct.variacoes?.length > 0 && !selectedVariation 
+                                    ? 'Selecione uma opção' 
+                                    : (numLinks >= 2 ? 'Adicionar' : 'Adicionar ao Carrinho'))}
                             </span>
                           </button>
                         </>
@@ -585,6 +618,32 @@ export default function ProductsPage() {
                     </div>
 
                     <div className="space-y-3">
+                      {/* Price & Weight */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex flex-col">
+                          {product.variacoes && product.variacoes.length > 0 ? (
+                            <>
+                              <span className="text-[10px] font-bold text-earth-400 uppercase tracking-tighter leading-none">A partir de</span>
+                              <span className="text-xl font-black text-olive-900 leading-tight">
+                                R$ {product.variacoes.reduce((min: number, v: any) => {
+                                  const p = parseFloat(v.preco);
+                                  return p < min ? p : min;
+                                }, 99999).toFixed(2).replace('.', ',')}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-xl font-black text-olive-900 leading-tight">R$ {product.price.toFixed(2).replace('.', ',')}</span>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[10px] font-bold text-earth-400 uppercase tracking-tighter leading-none text-right">Peso/Medida</span>
+                          <span className="text-sm font-bold text-olive-700 leading-tight">
+                            {product.variacoes && product.variacoes.length > 0
+                              ? product.variacoes.reduce((min: any, v: any) => parseFloat(v.preco) < parseFloat(min.preco) ? v : min, product.variacoes[0]).qtd + ' ' + product.variacoes.reduce((min: any, v: any) => parseFloat(v.preco) < parseFloat(min.preco) ? v : min, product.variacoes[0]).unidade
+                              : (product.weight || 'Unid')}
+                          </span>
+                        </div>
+                      </div>
                       <div className="flex items-center justify-center gap-3 bg-earth-50 rounded-lg p-1">
                         <button
                           onClick={() => handleQuantityChange(product.id, -1)}
@@ -611,20 +670,15 @@ export default function ProductsPage() {
 
                             <button
                               onClick={(e) => {
-                                if (isInCart(product.id)) {
-                                  removeFromCart(product.id);
-                                } else {
-                                  handleAddToCart(product, e);
-                                }
+                                e.stopPropagation();
+                                handleOpenModal(product);
                               }}
+                              className={`flex-grow h-12 flex items-center justify-center gap-2 font-black rounded-xl transition-all shadow-sm group ${
+                                isInCart(product.id)
+                                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                                  : 'bg-mustard-500 hover:bg-mustard-600 text-olive-900'
+                              }`}
                               title={isInCart(product.id) ? 'Remover do Carrinho' : 'Adicionar ao Carrinho'}
-                              className={`flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md rounded-xl font-bold h-10 md:h-[40px] ${(numLinks > 0 && !isInCart(product.id))
-                                ? (numLinks < 3 ? 'flex-grow min-w-[100px] px-2' : 'w-10 md:w-[40px] flex-shrink-0')
-                                : 'flex-grow min-w-[100px] px-4'
-                                } ${isInCart(product.id)
-                                  ? 'bg-red-500 text-white hover:bg-red-600'
-                                  : 'bg-mustard-500 hover:bg-mustard-600 text-olive-900 border border-mustard-600/10'
-                                }`}
                             >
                               {isInCart(product.id) ? <Trash2 className="w-4 h-4 md:w-5 md:h-5" /> : <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />}
                               <span className={`${(numLinks >= 3 && !isInCart(product.id)) ? 'hidden' : 'inline'}`}>

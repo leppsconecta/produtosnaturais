@@ -1,18 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface CartItem {
-  id: number;
+  id: number | string;
   name: string;
   category: string;
   weight: string;
   quantity: number;
+  variationName?: string;
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: any, quantity: number) => void;
-  removeFromCart: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
+  addToCart: (product: any, quantity: number, variation?: any) => void;
+  removeFromCart: (id: number | string, variationName?: string) => void;
+  updateQuantity: (id: number | string, quantity: number, variationName?: string) => void;
   clearCart: () => void;
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
@@ -37,12 +38,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: any, quantity: number) => {
+  const addToCart = (product: any, quantity: number, variation?: any) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
+      const existingItem = prevCart.find((item) => 
+        item.id === product.id && item.variationName === variation?.nome
+      );
+      
       if (existingItem) {
         return prevCart.map((item) =>
-          item.id === product.id
+          (item.id === product.id && item.variationName === variation?.nome)
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
@@ -53,24 +57,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             id: product.id,
             name: product.name,
             category: product.category,
-            weight: product.weight,
+            weight: variation ? `${variation.qtd || ''} ${variation.unidade || ''}` : product.weight,
             quantity: quantity,
+            variationName: variation?.nome
           },
         ];
       }
     });
-    // setIsSidebarOpen(true); // Removed to prevent auto-opening
   };
 
-  const removeFromCart = (id: number) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+  const removeFromCart = (id: number | string, variationName?: string) => {
+    setCart((prevCart) => prevCart.filter((item) => 
+      !(item.id === id && item.variationName === variationName)
+    ));
   };
 
-  const updateQuantity = (id: number, quantity: number) => {
+  const updateQuantity = (id: number | string, quantity: number, variationName?: string) => {
     if (quantity < 1) return;
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.id === id ? { ...item, quantity } : item
+        (item.id === id && item.variationName === variationName) ? { ...item, quantity } : item
       )
     );
   };
