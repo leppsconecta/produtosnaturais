@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, ArrowRight, Plus, Minus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { supabase } from '../lib/supabase';
 
 export default function Products() {
   const { addToCart, removeFromCart, cart } = useCart();
@@ -12,32 +13,39 @@ export default function Products() {
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('sabordaterra_categorias');
-      if (saved) {
-        const categorias = JSON.parse(saved);
-        // Coleta todos os itens visiveis
-        const todosItens = categorias.flatMap((c: any) =>
-          c.itens.filter((i: any) => i.visivel !== false) // Default é true se undefined
-        );
-        // Filtra os favoritos
-        const favoritos = todosItens.filter((i: any) => i.favorito).slice(0, 8);
+    const fetchFavoritos = async () => {
+      try {
+        const { data, error } = await supabase
+          .schema('mdaprodutosnaturais')
+          .from('produtos')
+          .select('*')
+          .eq('favorito', true)
+          .eq('visivel', true)
+          .order('nome', { ascending: true })
+          .limit(10);
 
-        // Mapeia para o formato esperado pelo componente
-        const formattedProducts = favoritos.map((item: any) => ({
+        if (error) throw error;
+
+        const formattedProducts = (data || []).map((item: any) => ({
           id: item.id,
           name: item.nome,
-          desc: item.descricao,
-          price: parseFloat(item.preco.replace('.', '').replace(',', '.')),
-          img: item.foto || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
-          weight: item.variacoes?.length ? 'Várias opções' : (item.unidade || 'Unid')
+          desc: item.descricao || '',
+          price: parseFloat(item.preco) || 0,
+          img: item.foto_url || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+          weight: item.variacoes?.length ? 'Várias opções' : 'Unid',
+          shopee_link: item.shopee_link,
+          mercadolivre_link: item.mercadolivre_link,
+          amazon_link: item.amazon_link,
+          aliexpress_link: item.aliexpress_link,
         }));
 
         setProducts(formattedProducts);
+      } catch (e) {
+        console.error('Erro ao carregar favoritos:', e);
       }
-    } catch (e) {
-      console.error('Erro ao carregar favoritos:', e);
-    }
+    };
+
+    fetchFavoritos();
   }, []);
 
   const handleQuantityChange = (id: number, delta: number) => {

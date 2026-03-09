@@ -2,11 +2,14 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, ShoppingCart, Search, ChevronLeft, ChevronRight, Plus, Minus, X, Trash2, ThumbsUp, MessageCircle, ThumbsDown, Send } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { supabase } from '../lib/supabase';
 
 const ITEMS_PER_PAGE = 20;
 
+const DESTAQUE_CAT = { id: 'destaque', name: '⭐ Destaque' };
+
 export default function ProductsPage() {
-  const [activeCategory, setActiveCategory] = useState('todos');
+  const [activeCategory, setActiveCategory] = useState('destaque');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const { addToCart, removeFromCart, cart } = useCart();
@@ -22,51 +25,53 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('sabordaterra_categorias');
-      if (saved) {
-        const categoriasRaw = JSON.parse(saved);
+    const fetchProducts = async () => {
+      try {
+        const [{ data: prodData }, { data: catData }] = await Promise.all([
+          supabase.schema('mdaprodutosnaturais').from('produtos').select('*').eq('visivel', true).order('ordem'),
+          supabase.schema('mdaprodutosnaturais').from('categorias').select('id, nome').order('ordem'),
+        ]);
 
-        // Mapear categorias para o formato esperado:
-        const formattedCategories = categoriasRaw.map((c: any) => ({
-          id: c.id,
-          name: c.nome
-        }));
-        setCategories(formattedCategories);
-
-        // Mapear e preparar produtos:
-        const todosItens = categoriasRaw.flatMap((c: any) =>
-          c.itens.filter((i: any) => i.visivel !== false) // Exibir apenas visíveis
-        );
-
-        const formattedProducts = todosItens.map((item: any) => ({
+        const formattedProducts = (prodData || []).map((item: any) => ({
           id: item.id,
           name: item.nome,
-          desc: item.descricao,
-          price: parseFloat(item.preco.replace('.', '').replace(',', '.')),
-          img: item.foto || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
-          weight: item.variacoes?.length ? 'Várias opções' : (item.unidade || 'Unid'),
-          category: item.categoria_id || 'todos',
-          // Links externos já virão do próprio produto do Cardápio se salvos lá,
-          // ou manter os originais caso existam no objeto "item".
+          desc: item.descricao || '',
+          price: parseFloat(item.preco) || 0,
+          img: item.foto_url || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+          weight: item.variacoes?.length ? 'Várias opções' : 'Unid',
+          category: item.categoria_id || 'sem-categoria',
+          favorito: item.favorito || false,
           shopee_link: item.shopee_link,
           mercadolivre_link: item.mercadolivre_link,
           amazon_link: item.amazon_link,
           aliexpress_link: item.aliexpress_link,
         }));
 
-        // Ordenar alfabeticamente
-        const sorted = formattedProducts.sort((a: any, b: any) => a.name.localeCompare(b.name));
-        setProducts(sorted);
+        setProducts(formattedProducts);
+
+        const hasDestaques = formattedProducts.some(p => p.favorito);
+        const formattedCats = (catData || []).map((c: any) => ({ id: c.id, name: c.nome }));
+        setCategories(hasDestaques ? [DESTAQUE_CAT, ...formattedCats] : formattedCats);
+        setActiveCategory(hasDestaques ? 'destaque' : (formattedCats[0]?.id || 'todos'));
+      } catch (e) {
+        console.error('Erro ao carregar produtos:', e);
       }
-    } catch (e) {
-      console.error('Erro ao carregar cardápio:', e);
-    }
+    };
+
+    fetchProducts();
   }, []);
+
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
-      const matchesCategory = activeCategory === 'todos' || product.category === activeCategory;
+      let matchesCategory: boolean;
+      if (activeCategory === 'todos') {
+        matchesCategory = true;
+      } else if (activeCategory === 'destaque') {
+        matchesCategory = product.favorito === true;
+      } else {
+        matchesCategory = product.category === activeCategory;
+      }
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.desc.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;

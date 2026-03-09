@@ -34,7 +34,7 @@ import Modal from '../components/UI/Modal';
 import { ModalType } from '../types';
 import { supabase } from '../lib/supabase';
 
-// Produto incluído em um combo
+// Produto incluÃ­do em um combo
 interface ComboProduct {
   id: string;
   nome: string;
@@ -100,7 +100,7 @@ const INITIAL_CATEGORIAS: CardapioCategoria[] = [
     itens: [
       { id: 'item-1', nome: 'Coca-Cola 350ml', descricao: 'Refrigerante gelado', preco: '6,00', foto: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400', ativo: true, visivel: true },
       { id: 'item-2', nome: 'Suco Natural Laranja', descricao: 'Suco de laranja natural 500ml', preco: '12,00', foto: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400', ativo: true, visivel: true },
-      { id: 'item-3', nome: 'Água Mineral 500ml', descricao: 'Água mineral sem gás', preco: '4,00', foto: 'https://images.unsplash.com/photo-1559839914-17aae19cec71?w=400', ativo: true, visivel: true },
+      { id: 'item-3', nome: 'Ãgua Mineral 500ml', descricao: 'Ãgua mineral sem gÃ¡s', preco: '4,00', foto: 'https://images.unsplash.com/photo-1559839914-17aae19cec71?w=400', ativo: true, visivel: true },
       { id: 'item-4', nome: 'Cerveja Heineken', descricao: 'Long neck 330ml', preco: '14,00', foto: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400', ativo: true, visivel: true },
     ]
   },
@@ -108,8 +108,8 @@ const INITIAL_CATEGORIAS: CardapioCategoria[] = [
     id: 'cat-2',
     nome: 'Pratos Quentes',
     itens: [
-      { id: 'item-5', nome: 'Filé à Parmegiana', descricao: 'Filé empanado com molho de tomate e queijo gratinado, arroz e fritas', preco: '58,90', foto: 'https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=400', ativo: true },
-      { id: 'item-6', nome: 'Risoto de Camarão', descricao: 'Arroz arbóreo cremoso com camarões salteados', preco: '72,00', foto: 'https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?w=400', ativo: true },
+      { id: 'item-5', nome: 'FilÃ© Ã  Parmegiana', descricao: 'FilÃ© empanado com molho de tomate e queijo gratinado, arroz e fritas', preco: '58,90', foto: 'https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=400', ativo: true },
+      { id: 'item-6', nome: 'Risoto de CamarÃ£o', descricao: 'Arroz arbÃ³reo cremoso com camarÃµes salteados', preco: '72,00', foto: 'https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?w=400', ativo: true },
       { id: 'item-7', nome: 'Lasanha Bolonhesa', descricao: 'Massa fresca, molho bolonhesa e bechamel', preco: '45,00', foto: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=400', ativo: true },
     ]
   },
@@ -117,8 +117,8 @@ const INITIAL_CATEGORIAS: CardapioCategoria[] = [
     id: 'cat-3',
     nome: 'Pratos Frios',
     itens: [
-      { id: 'item-8', nome: 'Salada Caesar', descricao: 'Alface romana, croutons, parmesão e molho caesar', preco: '32,00', foto: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400', ativo: true },
-      { id: 'item-9', nome: 'Carpaccio', descricao: 'Fatias finas de filé mignon com rúcula e parmesão', preco: '48,00', foto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', ativo: true },
+      { id: 'item-8', nome: 'Salada Caesar', descricao: 'Alface romana, croutons, parmesÃ£o e molho caesar', preco: '32,00', foto: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400', ativo: true },
+      { id: 'item-9', nome: 'Carpaccio', descricao: 'Fatias finas de filÃ© mignon com rÃºcula e parmesÃ£o', preco: '48,00', foto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', ativo: true },
     ]
   },
   {
@@ -132,15 +132,15 @@ const INITIAL_CATEGORIAS: CardapioCategoria[] = [
   },
   {
     id: 'cat-5',
-    nome: 'Porções',
+    nome: 'PorÃ§Ãµes',
     itens: [
-      { id: 'item-13', nome: 'Batata Frita', descricao: 'Porção de batata frita crocante', preco: '25,00', foto: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400', ativo: true },
-      { id: 'item-14', nome: 'Onion Rings', descricao: 'Anéis de cebola empanados', preco: '28,00', foto: 'https://images.unsplash.com/photo-1639024471283-03518883512d?w=400', ativo: true },
-      { id: 'item-15', nome: 'Mix de Petiscos', descricao: 'Coxinha, bolinha de queijo e pastéis', preco: '45,00', foto: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f25?w=400', ativo: true },
+      { id: 'item-13', nome: 'Batata Frita', descricao: 'PorÃ§Ã£o de batata frita crocante', preco: '25,00', foto: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400', ativo: true },
+      { id: 'item-14', nome: 'Onion Rings', descricao: 'AnÃ©is de cebola empanados', preco: '28,00', foto: 'https://images.unsplash.com/photo-1639024471283-03518883512d?w=400', ativo: true },
+      { id: 'item-15', nome: 'Mix de Petiscos', descricao: 'Coxinha, bolinha de queijo e pastÃ©is', preco: '45,00', foto: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f25?w=400', ativo: true },
       {
         id: 'combo-1',
         nome: 'Combo Happy Hour',
-        descricao: 'Perfeito para compartilhar! Inclui nossas melhores porções e bebidas.',
+        descricao: 'Perfeito para compartilhar! Inclui nossas melhores porÃ§Ãµes e bebidas.',
         preco: '89,90',
         foto: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400',
         ativo: true,
@@ -148,8 +148,8 @@ const INITIAL_CATEGORIAS: CardapioCategoria[] = [
         showSavings: true,
         savingsAmount: '25,00',
         comboItens: [
-          { id: 'cp-1', nome: 'Batata Frita', descricao: 'Porção de batata frita crocante', quantidade: '1', unidade: 'Unid' as const, isFromCardapio: true },
-          { id: 'cp-2', nome: 'Onion Rings', descricao: 'Anéis de cebola empanados', quantidade: '1', unidade: 'Unid' as const, isFromCardapio: true },
+          { id: 'cp-1', nome: 'Batata Frita', descricao: 'PorÃ§Ã£o de batata frita crocante', quantidade: '1', unidade: 'Unid' as const, isFromCardapio: true },
+          { id: 'cp-2', nome: 'Onion Rings', descricao: 'AnÃ©is de cebola empanados', quantidade: '1', unidade: 'Unid' as const, isFromCardapio: true },
           { id: 'cp-3', nome: 'Cerveja Heineken', descricao: 'Long neck 330ml', quantidade: '4', unidade: 'Unid' as const, isFromCardapio: true },
         ]
       },
@@ -256,6 +256,36 @@ const CardapioPage: React.FC = () => {
   // Favoritos state
   const [favoritosModalOpen, setFavoritosModalOpen] = useState(false);
   const [tempFavoritos, setTempFavoritos] = useState<string[]>([]);
+  const [isSavingFavoritos, setIsSavingFavoritos] = useState(false);
+  const [favoritosSuccess, setFavoritosSuccess] = useState(false);
+
+  const saveFavoritos = async (selectedIds: string[]) => {
+    setIsSavingFavoritos(true);
+    try {
+      const { error } = await supabase
+        .rpc('update_favoritos', { p_ids: selectedIds });
+
+      if (error) throw error;
+
+      // Update local state
+      setCategorias(prev => prev.map(cat => ({
+        ...cat,
+        itens: cat.itens.map(item => ({ ...item, favorito: selectedIds.includes(item.id) }))
+      })));
+
+      showToast(`${selectedIds.length} produto(s) marcado(s) como favorito!`, 'success');
+      setFavoritosSuccess(true);
+      setTimeout(() => {
+        setFavoritosSuccess(false);
+        setFavoritosModalOpen(false);
+      }, 1500);
+    } catch (err: any) {
+      console.error('Erro ao salvar favoritos:', err);
+      showToast('Erro ao salvar: ' + (err?.message || JSON.stringify(err)), 'error');
+    } finally {
+      setIsSavingFavoritos(false);
+    }
+  };
 
 
   // Filter state
@@ -286,7 +316,7 @@ const CardapioPage: React.FC = () => {
   const [menuOnlineEnabled, setMenuOnlineEnabled] = useState(true);
   const [isUpdatingMenuStatus, setIsUpdatingMenuStatus] = useState(false);
 
-  // Estado para upload de mídia (Categoria Especial)
+  // Estado para upload de mÃ­dia (Categoria Especial)
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
 
   // Function to focus on one section and collapse others
@@ -328,7 +358,7 @@ const CardapioPage: React.FC = () => {
     if (addCategoryModal.name.trim()) {
       try {
         const { data, error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('categorias')
           .insert({
             nome: addCategoryModal.name.trim(),
@@ -340,19 +370,10 @@ const CardapioPage: React.FC = () => {
 
         if (error) throw error;
 
-        // If special, create empty destaque entry
-        if (addCategoryModal.type === 'especial') {
-          await supabase
-            .schema('gestaohashi')
-            .from('destaques_conteudo')
-            .insert({ categoria_id: data.id, midias: [] });
-        }
-
         const newCat: CardapioCategoria = {
           id: data.id,
           nome: data.nome,
           tipo: data.tipo as 'padrao' | 'especial',
-          destaque: addCategoryModal.type === 'especial' ? { id: 'temp', categoriaId: data.id, titulo: '', descricao: '', midias: [], ativo: true } : undefined,
           itens: []
         };
         setCategorias([...categorias, newCat]);
@@ -386,7 +407,7 @@ const CardapioPage: React.FC = () => {
     const isImage = file.type.startsWith('image/');
 
     if (!isImage && !isVideo) {
-      showToast('Formato não suportado. Use imagens ou vídeos.', 'error');
+      showToast('Formato nÃ£o suportado. Use imagens ou vÃ­deos.', 'error');
       return;
     }
 
@@ -406,14 +427,14 @@ const CardapioPage: React.FC = () => {
         video.onloadedmetadata = () => {
           URL.revokeObjectURL(video.src);
           if (video.duration > 30) {
-            alert('Vídeo muito longo. Limite: 30 segundos.');
+            alert('VÃ­deo muito longo. Limite: 30 segundos.');
             resolve(false);
           } else {
             resolve(true);
           }
         };
         video.onerror = () => {
-          alert('Erro ao processar o vídeo.');
+          alert('Erro ao processar o vÃ­deo.');
           resolve(false);
         };
       });
@@ -438,19 +459,19 @@ const CardapioPage: React.FC = () => {
         const oldPath = extractPathFromUrl(formData.foto);
         if (oldPath) {
           await supabase.storage
-            .from('cardapio')
+            .from('mdaprodutosnaturais')
             .remove([oldPath]);
         }
       }
 
       const { error: uploadError } = await supabase.storage
-        .from('cardapio')
+        .from('mdaprodutosnaturais')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('cardapio')
+        .from('mdaprodutosnaturais')
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, foto: publicUrl }));
@@ -483,11 +504,10 @@ const CardapioPage: React.FC = () => {
   const fetchData = async () => {
     setIsLoading(true);
 
-    // Timeout de segurança: se o banco demorar mais de 10s, destrava a tela
     const safetyTimeout = setTimeout(() => {
       setIsLoading((loading) => {
         if (loading) {
-          showToast('Demora na resposta do banco. Exibindo dados locais ou vazios.', 'info');
+          showToast('Demora na resposta do banco. Recarregue a pÃ¡gina.', 'info');
           return false;
         }
         return loading;
@@ -495,28 +515,68 @@ const CardapioPage: React.FC = () => {
     }, 10000);
 
     try {
-      // O projeto atual não tem permissão para acessar 'gestaohashi'
-      // Voltando para mocks conforme solicitado para não tocar no schema alheio
-      setCategorias(INITIAL_CATEGORIAS);
-      setIsLoading(false);
-      return;
-
-      /* 
-      // Código de busca real comentado até que as tabelas em 'public' sejam recriadas (vazias)
+      // Buscar categorias
       const { data: catData, error: catError } = await supabase
+        .schema('mdaprodutosnaturais')
         .from('categorias')
         .select('*')
         .order('ordem', { ascending: true });
-      // ... 
-      */
+
+      if (catError) throw catError;
+
+      // Buscar produtos
+      const { data: prodData, error: prodError } = await supabase
+        .schema('mdaprodutosnaturais')
+        .from('produtos')
+        .select('*')
+        .order('ordem', { ascending: true });
+
+      if (prodError) throw prodError;
+
+
+      // Montar estrutura de categorias com seus itens
+      const categoriasComItens: CardapioCategoria[] = (catData || []).map((cat: any) => {
+        const itens: CardapioItem[] = (prodData || [])
+          .filter((p: any) => p.categoria_id === cat.id)
+          .map((p: any) => ({
+            id: p.id,
+            nome: p.nome,
+            descricao: p.descricao || '',
+            preco: p.preco != null ? parseFloat(p.preco).toFixed(2).replace('.', ',') : '0,00',
+            foto: p.foto_url || '',
+            ativo: p.ativo ?? true,
+            visivel: p.visivel ?? true,
+            categoria_id: p.categoria_id,
+            variacoes: p.variacoes || [],
+            shopee_link: p.shopee_link || '',
+            mercadolivre_link: p.mercadolivre_link || '',
+            amazon_link: p.amazon_link || '',
+            aliexpress_link: p.aliexpress_link || '',
+            favorito: p.favorito || false,
+            isCombo: false,
+          }));
+
+        return {
+          id: cat.id,
+          nome: cat.nome,
+          tipo: (cat.tipo || 'padrao') as 'padrao' | 'especial',
+          itens,
+        };
+      });
+
+      setCategorias(categoriasComItens);
+      if (categoriasComItens.length > 0) {
+        setActiveCatId(categoriasComItens[0].id);
+      }
     } catch (error: any) {
-      console.error('Error fetching cardapio data:', error);
-      setCategorias(INITIAL_CATEGORIAS);
+      console.error('Erro ao carregar catÃ¡logo:', error);
+      showToast('Erro ao carregar dados. ' + (error.message || ''), 'error');
     } finally {
       clearTimeout(safetyTimeout);
       setIsLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchData();
@@ -537,7 +597,7 @@ const CardapioPage: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('destaques_conteudo')
         .update({ ativo: newStatus })
         .eq('id', category.destaque.id);
@@ -605,7 +665,7 @@ const CardapioPage: React.FC = () => {
           // Execute Batch Delete if files exist
           if (filesToDelete.length > 0) {
             const { error: storageError } = await supabase.storage
-              .from('cardapio')
+              .from('mdaprodutosnaturais')
               .remove(filesToDelete);
 
             if (storageError) {
@@ -618,7 +678,7 @@ const CardapioPage: React.FC = () => {
 
         // 2. Delete from Database
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('categorias')
           .delete()
           .eq('id', deleteCategoryModal.categoryId);
@@ -634,7 +694,7 @@ const CardapioPage: React.FC = () => {
           }
         }
         setDeleteCategoryModal({ isOpen: false, categoryId: null });
-        showToast('Categoria e dados associados excluídos com sucesso!', 'success');
+        showToast('Categoria e dados associados excluÃ­dos com sucesso!', 'success');
 
       } catch (error) {
         console.error('Error deleting category:', error);
@@ -647,7 +707,7 @@ const CardapioPage: React.FC = () => {
     if (editingCategoryName.trim()) {
       try {
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('categorias')
           .update({ nome: editingCategoryName.trim() })
           .eq('id', id);
@@ -761,7 +821,7 @@ const CardapioPage: React.FC = () => {
 
         for (const update of updates) {
           await supabase
-            .schema('gestaohashi')
+            .schema('mdaprodutosnaturais')
             .from('categorias')
             .update({ ordem: update.ordem })
             .eq('id', update.id);
@@ -815,7 +875,7 @@ const CardapioPage: React.FC = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      showToast('Apenas imagens são permitidas para combos.', 'error');
+      showToast('Apenas imagens sÃ£o permitidas para combos.', 'error');
       return;
     }
 
@@ -836,19 +896,19 @@ const CardapioPage: React.FC = () => {
         const oldPath = extractPathFromUrl(comboFormData.foto);
         if (oldPath) {
           await supabase.storage
-            .from('cardapio')
+            .from('mdaprodutosnaturais')
             .remove([oldPath]);
         }
       }
 
       const { error: uploadError } = await supabase.storage
-        .from('cardapio')
+        .from('mdaprodutosnaturais')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('cardapio')
+        .from('mdaprodutosnaturais')
         .getPublicUrl(filePath);
 
       setComboFormData(prev => ({ ...prev, foto: publicUrl }));
@@ -883,12 +943,12 @@ const CardapioPage: React.FC = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Por favor, selecione uma imagem válida.');
+      alert('Por favor, selecione uma imagem vÃ¡lida.');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('A imagem deve ter no máximo 5MB.');
+      alert('A imagem deve ter no mÃ¡ximo 5MB.');
       return;
     }
 
@@ -903,18 +963,18 @@ const CardapioPage: React.FC = () => {
       const oldPath = extractPathFromUrl(heroImages[index].foto);
       if (oldPath) {
         await supabase.storage
-          .from('cardapio')
+          .from('mdaprodutosnaturais')
           .remove([oldPath]);
       }
 
       const { error: uploadError } = await supabase.storage
-        .from('cardapio')
+        .from('mdaprodutosnaturais')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('cardapio')
+        .from('mdaprodutosnaturais')
         .getPublicUrl(filePath);
 
       setHeroImages(prev => {
@@ -953,13 +1013,13 @@ const CardapioPage: React.FC = () => {
     try {
       if (hero.id && !hero.id.startsWith('hero-')) {
         await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('hero_images')
           .update(payload)
           .eq('id', hero.id);
       } else {
         const { data, error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('hero_images')
           .insert(payload)
           .select()
@@ -1007,7 +1067,7 @@ const CardapioPage: React.FC = () => {
       const path = extractPathFromUrl(hero.foto);
       if (path) {
         await supabase.storage
-          .from('cardapio')
+          .from('mdaprodutosnaturais')
           .remove([path]);
       }
     }
@@ -1045,7 +1105,7 @@ const CardapioPage: React.FC = () => {
       return;
     }
     if (comboProducts.length < 2) {
-      alert('O combo deve ter no mínimo 2 produtos');
+      alert('O combo deve ter no mÃ­nimo 2 produtos');
       return;
     }
 
@@ -1077,14 +1137,14 @@ const CardapioPage: React.FC = () => {
 
       if (editingCombo) {
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('produtos')
           .update(comboPayload)
           .eq('id', comboId);
         if (error) throw error;
       } else {
         const { data, error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('produtos')
           .insert(comboPayload)
           .select()
@@ -1096,7 +1156,7 @@ const CardapioPage: React.FC = () => {
       // Sync combo items
       // 1. Delete old items
       const { error: delError } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('combo_produtos')
         .delete()
         .eq('combo_id', comboId);
@@ -1114,7 +1174,7 @@ const CardapioPage: React.FC = () => {
       }));
 
       const { error: insError } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('combo_produtos')
         .insert(itemsPayload);
       if (insError) throw insError;
@@ -1191,12 +1251,12 @@ const CardapioPage: React.FC = () => {
 
     for (const variacao of formData.variacoes) {
       if (!variacao.nome.trim()) {
-        alert('Informe o nome para todas as variações');
+        alert('Informe o nome para todas as variaÃ§Ãµes');
         return;
       }
       const vPrice = parseFloat(variacao.preco.replace(',', '.'));
       if (isNaN(vPrice) || vPrice <= 0) {
-        alert(`Informe um preço válido para a variação "${variacao.nome}"`);
+        alert(`Informe um preÃ§o vÃ¡lido para a variaÃ§Ã£o "${variacao.nome}"`);
         return;
       }
     }
@@ -1225,14 +1285,14 @@ const CardapioPage: React.FC = () => {
 
       if (editingItem) {
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('produtos')
           .update(payload)
           .eq('id', editingItem.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('produtos')
           .insert({
             ...payload,
@@ -1261,7 +1321,7 @@ const CardapioPage: React.FC = () => {
     if (deleteItemModal.itemId) {
       try {
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('produtos')
           .delete()
           .eq('id', deleteItemModal.itemId);
@@ -1273,7 +1333,7 @@ const CardapioPage: React.FC = () => {
         if (itemToDelete?.foto) {
           const oldPath = extractPathFromUrl(itemToDelete.foto);
           if (oldPath) {
-            await supabase.storage.from('cardapio').remove([oldPath]);
+            await supabase.storage.from('mdaprodutosnaturais').remove([oldPath]);
           }
         }
 
@@ -1320,29 +1380,46 @@ const CardapioPage: React.FC = () => {
     const item = activeCategory?.itens.find(i => i.id === itemId);
     if (!item) return;
 
+    const newVisivel = !item.visivel;
+
+    // Optimistic update first
+    setCategorias(prev => prev.map(cat => {
+      if (cat.id === activeCatId) {
+        return {
+          ...cat,
+          itens: cat.itens.map(i =>
+            i.id === itemId ? { ...i, visivel: newVisivel } : i
+          )
+        };
+      }
+      return cat;
+    }));
+
     try {
       const { error } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('produtos')
-        .update({ visivel: !item.visivel })
+        .update({ visivel: newVisivel })
         .eq('id', itemId);
 
       if (error) throw error;
 
+      showToast(newVisivel ? 'Produto exibido no site.' : 'Produto ocultado do site.', 'success');
+    } catch (error: any) {
+      console.error('Error toggling visibility:', error);
+      // Revert on error
       setCategorias(prev => prev.map(cat => {
         if (cat.id === activeCatId) {
           return {
             ...cat,
-            itens: cat.itens.map(item =>
-              item.id === itemId ? { ...item, visivel: !item.visivel } : item
+            itens: cat.itens.map(i =>
+              i.id === itemId ? { ...i, visivel: !newVisivel } : i
             )
           };
         }
         return cat;
       }));
-    } catch (error) {
-      console.error('Error toggling visibility:', error);
-      alert('Erro ao alterar visibilidade no banco de dados.');
+      showToast('Erro ao alterar visibilidade: ' + (error?.message || 'Erro desconhecido'), 'error');
     }
   };
 
@@ -1417,15 +1494,15 @@ const CardapioPage: React.FC = () => {
       };
 
       const { error } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('destaques_conteudo')
         .upsert(payload, { onConflict: 'categoria_id' });
 
       if (error) throw error;
-      showToast('Alterações salvas com sucesso!', 'success');
+      showToast('AlteraÃ§Ãµes salvas com sucesso!', 'success');
     } catch (error: any) {
       console.error('Error saving destaque:', error);
-      showToast('Erro ao salvar alterações: ' + error.message, 'error');
+      showToast('Erro ao salvar alteraÃ§Ãµes: ' + error.message, 'error');
     }
   };
 
@@ -1447,16 +1524,16 @@ const CardapioPage: React.FC = () => {
     // Persist to DB
     try {
       const { error } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('destaques_conteudo')
         .update({ descricao: tempDesc })
         .eq('categoria_id', editingCatIdForDesc);
 
       if (error) throw error;
-      showToast('Descrição atualizada!', 'success');
+      showToast('DescriÃ§Ã£o atualizada!', 'success');
     } catch (err: any) {
       console.error('Error saving description:', err);
-      showToast('Erro ao salvar descrição.', 'error');
+      showToast('Erro ao salvar descriÃ§Ã£o.', 'error');
     }
 
     setDescModalOpen(false);
@@ -1468,7 +1545,7 @@ const CardapioPage: React.FC = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-      showToast('Formato de arquivo inválido.', 'error');
+      showToast('Formato de arquivo invÃ¡lido.', 'error');
       return;
     }
 
@@ -1490,14 +1567,14 @@ const CardapioPage: React.FC = () => {
         video.onloadedmetadata = () => {
           URL.revokeObjectURL(video.src);
           if (video.duration > 30) {
-            alert('Vídeo muito longo. Limite: 30 segundos.');
+            alert('VÃ­deo muito longo. Limite: 30 segundos.');
             resolve(false);
           } else {
             resolve(true);
           }
         };
         video.onerror = () => {
-          alert('Erro ao processar o vídeo.');
+          alert('Erro ao processar o vÃ­deo.');
           resolve(false);
         };
       });
@@ -1517,13 +1594,13 @@ const CardapioPage: React.FC = () => {
       const filePath = `destaques/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('cardapio')
+        .from('mdaprodutosnaturais')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('cardapio')
+        .from('mdaprodutosnaturais')
         .getPublicUrl(filePath);
 
       const type = file.type.startsWith('image/') ? 'image' : 'video';
@@ -1559,17 +1636,17 @@ const CardapioPage: React.FC = () => {
         };
 
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('destaques_conteudo')
           .upsert(payload, { onConflict: 'categoria_id' });
 
         if (error) throw error;
-        showToast('Mídia adicionada com sucesso!', 'success');
+        showToast('MÃ­dia adicionada com sucesso!', 'success');
       }
 
     } catch (error) {
       console.error('Error uploading media:', error);
-      showToast('Erro ao fazer upload da mídia.', 'error');
+      showToast('Erro ao fazer upload da mÃ­dia.', 'error');
     } finally {
       setIsUploadingMedia(false);
     }
@@ -1608,7 +1685,7 @@ const CardapioPage: React.FC = () => {
         const fileName = mediaUrl.split('/').pop();
         if (fileName) {
           const { error: storageError } = await supabase.storage
-            .from('cardapio')
+            .from('mdaprodutosnaturais')
             .remove([`destaques/${fileName}`]);
 
           if (storageError) {
@@ -1618,16 +1695,16 @@ const CardapioPage: React.FC = () => {
 
         // 2. Update DB
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('destaques_conteudo')
           .upsert(payload, { onConflict: 'categoria_id' });
 
         if (error) throw error;
-        showToast("Mídia removida com sucesso", "success");
+        showToast("MÃ­dia removida com sucesso", "success");
 
       } catch (error) {
         console.error("Error removing media from DB", error);
-        showToast("Erro ao salvar alteração de mídia", "error");
+        showToast("Erro ao salvar alteraÃ§Ã£o de mÃ­dia", "error");
       }
     }
   };
@@ -1637,7 +1714,7 @@ const CardapioPage: React.FC = () => {
     const newState = !menuOnlineEnabled;
     try {
       const { error } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('config')
         .upsert({ key: 'menu_online_enabled', value: String(newState) }, { onConflict: 'key' });
 
@@ -1663,35 +1740,10 @@ const CardapioPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Catálogo</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">CatÃ¡logo</h1>
           <p className="text-sm text-slate-500">Gerencie os produtos do seu estabelecimento</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Menu Online Toggle */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              Site
-            </span>
-            <button
-              onClick={toggleMenuOnline}
-              disabled={isUpdatingMenuStatus}
-              className={`
-                relative w-10 h-5 rounded-full transition-all duration-300 flex items-center
-                ${menuOnlineEnabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}
-                ${isUpdatingMenuStatus ? 'opacity-50 cursor-wait' : 'cursor-pointer'}
-              `}
-            >
-              <div className={`
-                absolute w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300
-                ${menuOnlineEnabled ? 'left-[22px]' : 'left-0.5'}
-                ${isUpdatingMenuStatus ? 'scale-75' : 'scale-100'}
-              `} />
-            </button>
-            <span className={`text-[10px] font-bold uppercase transition-colors ${menuOnlineEnabled ? 'text-emerald-600' : 'text-slate-400'}`}>
-              {menuOnlineEnabled ? 'Exibir no site' : 'Ocultado do site'}
-            </span>
-          </div>
-
           <a
             href="/produtos"
             className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-sm"
@@ -1771,7 +1823,7 @@ const CardapioPage: React.FC = () => {
 
                   {/* Toggle for description */}
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Adicionar descrição?</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">Adicionar descriÃ§Ã£o?</span>
                     <button
                       onClick={() => updateHeroImageField(idx, 'showDescription', !hero.showDescription)}
                       className={`relative w-10 h-5 rounded-full transition-colors ${hero.showDescription ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'}`}
@@ -1786,7 +1838,7 @@ const CardapioPage: React.FC = () => {
                       {/* Title input - max 20 characters */}
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Título</label>
+                          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">TÃ­tulo</label>
                           <span className={`text-[10px] ${hero.titulo.length > 20 ? 'text-red-500' : 'text-slate-400'}`}>
                             {hero.titulo.length}/20
                           </span>
@@ -1795,7 +1847,7 @@ const CardapioPage: React.FC = () => {
                           type="text"
                           value={hero.titulo}
                           onChange={(e) => updateHeroImageField(idx, 'titulo', e.target.value.slice(0, 20))}
-                          placeholder="Título"
+                          placeholder="TÃ­tulo"
                           maxLength={20}
                           className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                         />
@@ -1804,7 +1856,7 @@ const CardapioPage: React.FC = () => {
                       {/* Subtitle input - max 50 characters */}
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Subtítulo</label>
+                          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">SubtÃ­tulo</label>
                           <span className={`text-[10px] ${hero.subtitulo.length > 50 ? 'text-red-500' : 'text-slate-400'}`}>
                             {hero.subtitulo.length}/50
                           </span>
@@ -1812,7 +1864,7 @@ const CardapioPage: React.FC = () => {
                         <textarea
                           value={hero.subtitulo}
                           onChange={(e) => updateHeroImageField(idx, 'subtitulo', e.target.value.slice(0, 50))}
-                          placeholder="Subtítulo"
+                          placeholder="SubtÃ­tulo"
                           maxLength={50}
                           rows={2}
                           className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 resize-none"
@@ -2032,10 +2084,16 @@ const CardapioPage: React.FC = () => {
 
                   {/* Favoritos Button */}
                   <button
-                    onClick={() => {
-                      // Collect all current favoritos
-                      const currentFavs = categorias.flatMap(c => c.itens).filter(i => i.favorito).map(i => i.id);
+                    onClick={async () => {
+                      // Always fetch fresh from DB
+                      const { data } = await supabase
+                        .schema('mdaprodutosnaturais')
+                        .from('produtos')
+                        .select('id, favorito')
+                        .eq('favorito', true);
+                      const currentFavs = (data || []).map((p: any) => p.id);
                       setTempFavoritos(currentFavs);
+                      setFavoritosSuccess(false);
                       setFavoritosModalOpen(true);
                     }}
                     className="flex items-center gap-2 px-4 py-2 bg-amber-100/50 hover:bg-amber-100 text-amber-600 dark:text-amber-400 font-medium rounded-lg text-sm transition-all shadow-sm border border-amber-200 dark:border-amber-800"
@@ -2215,7 +2273,7 @@ const CardapioPage: React.FC = () => {
                           )}
                         </div>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 min-h-[24px]">
-                          {item.descricao || 'Sem descrição'}
+                          {item.descricao || 'Sem descriÃ§Ã£o'}
                         </p>
 
                         {/* Marketplace Links Indicators */}
@@ -2307,7 +2365,7 @@ const CardapioPage: React.FC = () => {
                 <button
                   onClick={(e) => { e.stopPropagation(); handleNavigateItem('next'); }}
                   className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors disabled:opacity-30"
-                  title="Próximo"
+                  title="PrÃ³ximo"
                 >
                   <ChevronRight size={20} />
                 </button>
@@ -2322,7 +2380,7 @@ const CardapioPage: React.FC = () => {
               {/* Coluna Esquerda: Imagem */}
               <div className="w-full md:w-[320px] shrink-0 space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">Imagem ou Vídeo do produto</label>
+                  <label className="block text-xs font-semibold text-slate-500 mb-2">Imagem ou VÃ­deo do produto</label>
 
                   {/* Hidden file input */}
                   <input
@@ -2371,14 +2429,14 @@ const CardapioPage: React.FC = () => {
                       <>
                         <Upload size={32} className="text-slate-300 mb-2" />
                         <span className="text-xs text-slate-500 font-medium">Clique para enviar</span>
-                        <span className="text-[10px] text-slate-400 mt-1">Imagem (até 5MB) ou Vídeo (até 50MB, máx 30s)</span>
+                        <span className="text-[10px] text-slate-400 mt-1">Imagem (atÃ© 5MB) ou VÃ­deo (atÃ© 50MB, mÃ¡x 30s)</span>
                       </>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Coluna Direita: Informações */}
+              {/* Coluna Direita: InformaÃ§Ãµes */}
               <div className="flex-1 space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -2408,7 +2466,7 @@ const CardapioPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-2">Descrição</label>
+                  <label className="block text-xs font-semibold text-slate-500 mb-2">DescriÃ§Ã£o</label>
                   <textarea
                     value={formData.descricao}
                     onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
@@ -2418,10 +2476,10 @@ const CardapioPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Preços */}
+                {/* PreÃ§os */}
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-700">
                   <div className="flex items-center justify-between mb-4">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Configuração de Preços</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">ConfiguraÃ§Ã£o de PreÃ§os</label>
                     {(formData.variacoes?.length || 0) < 10 && (
                       <button
                         type="button"
@@ -2430,10 +2488,10 @@ const CardapioPage: React.FC = () => {
                           if (newVariacoes.length === 0) {
                             newVariacoes = [
                               { nome: 'Pequena', preco: formData.preco },
-                              { nome: 'Média', preco: '' }
+                              { nome: 'MÃ©dia', preco: '' }
                             ];
                           } else {
-                            const placeholders = ['Pequena', 'Média', 'Grande', 'Extra G', 'Família'];
+                            const placeholders = ['Pequena', 'MÃ©dia', 'Grande', 'Extra G', 'FamÃ­lia'];
                             const nextName = placeholders[newVariacoes.length] || '';
                             newVariacoes.push({ nome: nextName, preco: '' });
                           }
@@ -2442,7 +2500,7 @@ const CardapioPage: React.FC = () => {
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
                       >
                         <Plus size={14} />
-                        + preços
+                        + preÃ§os
                       </button>
                     )}
                   </div>
@@ -2454,7 +2512,7 @@ const CardapioPage: React.FC = () => {
                           <label className="block text-[10px] font-bold text-slate-400 mb-1">TIPO</label>
                           <input
                             type="text"
-                            value="Valor único"
+                            value="Valor Ãºnico"
                             disabled
                             className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 font-medium cursor-not-allowed"
                           />
@@ -2479,10 +2537,10 @@ const CardapioPage: React.FC = () => {
                         {formData.variacoes.map((variacao, idx) => (
                           <div key={idx} className="flex gap-3 items-end group">
                             <div className="flex-1">
-                              {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Variação</label>}
+                              {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">VariaÃ§Ã£o</label>}
                               <input
                                 type="text"
-                                placeholder={idx === 0 ? "Pequena" : idx === 1 ? "Média" : "Grande"}
+                                placeholder={idx === 0 ? "Pequena" : idx === 1 ? "MÃ©dia" : "Grande"}
                                 value={variacao.nome}
                                 onChange={(e) => {
                                   const newVariacoes = [...formData.variacoes!];
@@ -2493,7 +2551,7 @@ const CardapioPage: React.FC = () => {
                               />
                             </div>
                             <div className="w-32">
-                              {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Preço</label>}
+                              {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">PreÃ§o</label>}
                               <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">R$</span>
                                 <input
@@ -2513,9 +2571,9 @@ const CardapioPage: React.FC = () => {
                               type="button"
                               onClick={() => {
                                 const newVariacoes = formData.variacoes!.filter((_, i) => i !== idx);
-                                // Se ao remover sobrar apenas 1, volta para o estado de preço único?
+                                // Se ao remover sobrar apenas 1, volta para o estado de preÃ§o Ãºnico?
                                 if (newVariacoes.length <= 1) {
-                                  // Se sobrou uma, recupera o preço dela para o preco principal
+                                  // Se sobrou uma, recupera o preÃ§o dela para o preco principal
                                   const finalPrice = newVariacoes.length === 1 ? newVariacoes[0].preco : '';
                                   setFormData({ ...formData, variacoes: [], preco: finalPrice });
                                 } else {
@@ -2523,7 +2581,7 @@ const CardapioPage: React.FC = () => {
                                 }
                               }}
                               className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
-                              title="Remover preço"
+                              title="Remover preÃ§o"
                             >
                               <Trash2 size={18} />
                             </button>
@@ -2536,7 +2594,7 @@ const CardapioPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Sub-seção: Links Externos - FULL WIDTH */}
+            {/* Sub-seÃ§Ã£o: Links Externos - FULL WIDTH */}
             <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 animate-in fade-in duration-500">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
@@ -2643,7 +2701,7 @@ const CardapioPage: React.FC = () => {
           </div>
         }
         onConfirm={handleSaveItem}
-        confirmText={isSaving ? 'Salvando...' : (editingItem ? 'Salvar Alterações' : 'Adicionar Produto')}
+        confirmText={isSaving ? 'Salvando...' : (editingItem ? 'Salvar AlteraÃ§Ãµes' : 'Adicionar Produto')}
         onClose={() => !isSaving && setModalConfig({ isOpen: false })}
       />
 
@@ -2660,7 +2718,7 @@ const CardapioPage: React.FC = () => {
             {toast.type === 'error' && <AlertTriangle size={24} className="fill-current" />}
             {toast.type === 'info' && <Info size={24} className="fill-current" />}
             <div>
-              <p className="font-bold text-sm text-slate-900 dark:text-white">{toast.type === 'success' ? 'Sucesso' : toast.type === 'error' ? 'Erro' : 'Informação'}</p>
+              <p className="font-bold text-sm text-slate-900 dark:text-white">{toast.type === 'success' ? 'Sucesso' : toast.type === 'error' ? 'Erro' : 'InformaÃ§Ã£o'}</p>
               <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{toast.message}</p>
             </div>
             <button
@@ -2731,7 +2789,7 @@ const CardapioPage: React.FC = () => {
                         ) : (
                           <>
                             <Upload size={24} className="text-slate-300 mb-1" />
-                            <span className="text-xs text-slate-500">Clique para enviar (até 5MB)</span>
+                            <span className="text-xs text-slate-500">Clique para enviar (atÃ© 5MB)</span>
                           </>
                         )}
                       </div>
@@ -2744,24 +2802,24 @@ const CardapioPage: React.FC = () => {
                         type="text"
                         value={comboFormData.nome}
                         onChange={(e) => setComboFormData({ ...comboFormData, nome: e.target.value })}
-                        placeholder="Ex: Combo Família"
+                        placeholder="Ex: Combo FamÃ­lia"
                         className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500/20 text-slate-900 dark:text-white"
                       />
                     </div>
 
-                    {/* Descrição */}
+                    {/* DescriÃ§Ã£o */}
                     <div>
-                      <label className="block text-xs font-semibold text-slate-500 mb-2">Descrição</label>
+                      <label className="block text-xs font-semibold text-slate-500 mb-2">DescriÃ§Ã£o</label>
                       <textarea
                         value={comboFormData.descricao}
                         onChange={(e) => setComboFormData({ ...comboFormData, descricao: e.target.value })}
-                        placeholder="Descrição do combo..."
+                        placeholder="DescriÃ§Ã£o do combo..."
                         rows={2}
                         className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500/20 resize-none text-slate-900 dark:text-white"
                       />
                     </div>
 
-                    {/* Preço */}
+                    {/* PreÃ§o */}
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 mb-2">Valor do Combo</label>
                       <div className="relative">
@@ -2810,7 +2868,7 @@ const CardapioPage: React.FC = () => {
 
                   {/* Right Column - Products List */}
                   <div className="space-y-4">
-                    <label className="block text-xs font-semibold text-slate-500">Produtos incluídos <span className="text-red-500">*</span></label>
+                    <label className="block text-xs font-semibold text-slate-500">Produtos incluÃ­dos <span className="text-red-500">*</span></label>
 
                     {/* Products List with Thumbnails */}
                     <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 min-h-[200px] max-h-[280px] overflow-y-auto">
@@ -2830,7 +2888,7 @@ const CardapioPage: React.FC = () => {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{product.nome}</p>
-                                <p className="text-xs text-slate-400 truncate">{product.descricao || 'Sem descrição'}</p>
+                                <p className="text-xs text-slate-400 truncate">{product.descricao || 'Sem descriÃ§Ã£o'}</p>
                               </div>
                               <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold bg-indigo-100 dark:bg-indigo-900/40 px-2 py-0.5 rounded whitespace-nowrap">
                                 {product.quantidade} {product.unidade}
@@ -2913,20 +2971,20 @@ const CardapioPage: React.FC = () => {
                               onClick={() => setNewComboProduct({ ...newComboProduct, useOriginalDescription: true })}
                               className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${newComboProduct.useOriginalDescription ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600'}`}
                             >
-                              Usar descrição original
+                              Usar descriÃ§Ã£o original
                             </button>
                             <button
                               onClick={() => setNewComboProduct({ ...newComboProduct, useOriginalDescription: false })}
                               className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${!newComboProduct.useOriginalDescription ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600'}`}
                             >
-                              Nova descrição
+                              Nova descriÃ§Ã£o
                             </button>
                           </div>
                           {!newComboProduct.useOriginalDescription && (
                             <textarea
                               value={newComboProduct.descricao}
                               onChange={(e) => setNewComboProduct({ ...newComboProduct, descricao: e.target.value })}
-                              placeholder="Digite a nova descrição..."
+                              placeholder="Digite a nova descriÃ§Ã£o..."
                               rows={2}
                               className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm resize-none text-slate-900 dark:text-white"
                             />
@@ -2939,7 +2997,7 @@ const CardapioPage: React.FC = () => {
                         <textarea
                           value={newComboProduct.descricao}
                           onChange={(e) => setNewComboProduct({ ...newComboProduct, descricao: e.target.value })}
-                          placeholder="Descrição do produto..."
+                          placeholder="DescriÃ§Ã£o do produto..."
                           rows={2}
                           className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm resize-none text-slate-900 dark:text-white"
                         />
@@ -2997,7 +3055,7 @@ const CardapioPage: React.FC = () => {
                   disabled={isSaving}
                   onClick={handleSaveCombo}
                 >
-                  {isSaving ? 'Salvando...' : (editingCombo ? 'Salvar Alterações' : 'Criar Combo')}
+                  {isSaving ? 'Salvando...' : (editingCombo ? 'Salvar AlteraÃ§Ãµes' : 'Criar Combo')}
                 </button>
               </div>
             </div>
@@ -3012,7 +3070,7 @@ const CardapioPage: React.FC = () => {
         title="Nova Categoria"
         content={
           <div className="space-y-4">
-            <p className="text-sm text-slate-500">Digite o nome da nova categoria para o seu cardápio.</p>
+            <p className="text-sm text-slate-500">Digite o nome da nova categoria para o seu cardÃ¡pio.</p>
             <div>
               <label className="block text-xs font-semibold text-slate-500 mb-2">Nome da Categoria</label>
               <input
@@ -3040,7 +3098,7 @@ const CardapioPage: React.FC = () => {
         isOpen={deleteCategoryModal.isOpen}
         type="confirm-delete"
         title="Excluir Categoria"
-        content="Tem certeza que deseja excluir esta categoria? Todos os produtos vinculados a ela também serão excluídos permanentemente."
+        content="Tem certeza que deseja excluir esta categoria? Todos os produtos vinculados a ela tambÃ©m serÃ£o excluÃ­dos permanentemente."
         onConfirm={handleConfirmDeleteCategoria}
         confirmText="Sim, Excluir Tudo"
         onClose={() => setDeleteCategoryModal({ isOpen: false, categoryId: null })}
@@ -3051,7 +3109,7 @@ const CardapioPage: React.FC = () => {
         isOpen={deleteItemModal.isOpen}
         type="confirm-delete"
         title="Excluir Produto"
-        content="Tem certeza que deseja remover este produto do cardápio?"
+        content="Tem certeza que deseja remover este produto do cardÃ¡pio?"
         onConfirm={handleConfirmDeleteItem}
         confirmText="Sim, Remover"
         onClose={() => setDeleteItemModal({ isOpen: false, itemId: null })}
@@ -3061,17 +3119,17 @@ const CardapioPage: React.FC = () => {
       <Modal
         isOpen={descModalOpen}
         type="confirm-update"
-        title="Editar Descrição"
+        title="Editar DescriÃ§Ã£o"
         maxWidth="max-w-2xl"
         content={
           <div className="space-y-4">
             <p className="text-sm text-slate-500">
-              Edite a descrição detalhada para este destaque especial.
+              Edite a descriÃ§Ã£o detalhada para este destaque especial.
             </p>
             <textarea
               value={tempDesc}
               onChange={(e) => setTempDesc(e.target.value)}
-              placeholder="Digite a descrição aqui..."
+              placeholder="Digite a descriÃ§Ã£o aqui..."
               className="w-full h-48 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm resize-none"
               autoFocus
             />
@@ -3081,6 +3139,117 @@ const CardapioPage: React.FC = () => {
         confirmText="Salvar Descrição"
         onClose={() => setDescModalOpen(false)}
       />
+
+      {/* Favoritos Modal */}
+      {favoritosModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !isSavingFavoritos && !favoritosSuccess && setFavoritosModalOpen(false)} />
+          <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700">
+
+            {favoritosSuccess ? (
+              /* SUCCESS SCREEN */
+              <div className="flex flex-col items-center justify-center py-16 px-6 gap-5">
+                <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <CheckCircle size={44} className="text-emerald-500" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Destaque salvo!</h3>
+                  <p className="text-sm text-slate-500">{tempFavoritos.length} produto(s) marcado(s) como favorito no site.</p>
+                </div>
+              </div>
+            ) : (
+              /* SELECTION SCREEN */
+              <>
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <Star size={18} className="fill-amber-400 text-amber-500" />
+                      Produtos em Destaque
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">Selecione até 10 produtos para exibir na Home e na seção Destaque</p>
+                  </div>
+                  <button onClick={() => setFavoritosModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+                    <X size={18} className="text-slate-500" />
+                  </button>
+                </div>
+
+                {/* Counter */}
+                <div className={`px-6 py-2 text-xs font-bold flex items-center gap-2 flex-shrink-0 ${tempFavoritos.length >= 10 ? 'bg-amber-50 text-amber-700' : 'bg-slate-50 text-slate-500'}`}>
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-black ${tempFavoritos.length >= 10 ? 'bg-amber-500' : 'bg-slate-400'}`}>
+                    {tempFavoritos.length}
+                  </span>
+                  {tempFavoritos.length >= 10 ? 'Limite de 10 produtos atingido' : `${10 - tempFavoritos.length} restantes`}
+                </div>
+
+                {/* Products list */}
+                <div className="overflow-y-auto flex-1 px-4 py-3 space-y-1">
+                  {categorias.map(cat => (
+                    <div key={cat.id}>
+                      <p className="text-[10px] font-bold uppercase text-slate-400 px-2 pt-3 pb-1 tracking-wider">{cat.nome}</p>
+                      {cat.itens.filter(i => !i.isCombo).map(item => {
+                        const isSelected = tempFavoritos.includes(item.id);
+                        const isDisabled = !isSelected && tempFavoritos.length >= 10;
+                        return (
+                          <button
+                            key={item.id}
+                            disabled={isDisabled}
+                            onClick={() => {
+                              if (isSelected) {
+                                setTempFavoritos(prev => prev.filter(id => id !== item.id));
+                              } else if (tempFavoritos.length < 10) {
+                                setTempFavoritos(prev => [...prev, item.id]);
+                              }
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left
+                              ${isSelected ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent'}
+                              ${isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
+                            `}
+                          >
+                            <div className="w-9 h-9 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
+                              {item.foto
+                                ? <img src={item.foto} alt={item.nome} className="w-full h-full object-cover" />
+                                : <div className="w-full h-full flex items-center justify-center"><ImageIcon size={14} className="text-slate-300" /></div>
+                              }
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{item.nome}</p>
+                              <p className="text-xs text-emerald-600 font-bold">R$ {item.preco}</p>
+                            </div>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all
+                              ${isSelected ? 'bg-amber-500 border-amber-500' : 'border-slate-300 dark:border-slate-600'}
+                            `}>
+                              {isSelected && <Check size={11} className="text-white" strokeWidth={3} />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 flex-shrink-0">
+                  <button
+                    onClick={() => setFavoritosModalOpen(false)}
+                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => saveFavoritos(tempFavoritos)}
+                    disabled={isSavingFavoritos}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-bold rounded-lg text-sm transition-all"
+                  >
+                    {isSavingFavoritos ? <Loader2 size={16} className="animate-spin" /> : <Star size={16} className="fill-white" />}
+                    {isSavingFavoritos ? 'Salvando...' : `Salvar (${tempFavoritos.length} selecionados)`}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       <style>{`
         .scrollbar-hide::-webkit-scrollbar {
@@ -3092,3 +3261,4 @@ const CardapioPage: React.FC = () => {
 };
 
 export default CardapioPage;
+
