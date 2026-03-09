@@ -657,7 +657,11 @@ const FuncionarioForm = React.forwardRef<HTMLFormElement, { onSuccess: () => voi
 
 
 
+<<<<<<< HEAD
 const ShareModalContent: React.FC<{ initialEnabled: boolean, link: string }> = ({ initialEnabled, link }) => {
+=======
+const ShareModalContent: React.FC<{ initialEnabled: boolean, link: string, onStatusChange?: (enabled: boolean) => void }> = ({ initialEnabled, link, onStatusChange }) => {
+>>>>>>> 47ad34f4e89d90b2c4542364948ec5a39214d924
   const [enabled, setEnabled] = useState(initialEnabled);
   const [loading, setLoading] = useState(false);
 
@@ -667,6 +671,7 @@ const ShareModalContent: React.FC<{ initialEnabled: boolean, link: string }> = (
     setEnabled(newState); // Optimistic update
 
     try {
+<<<<<<< HEAD
       await supabase
         .schema('gestaohashi')
         .from('config')
@@ -674,6 +679,16 @@ const ShareModalContent: React.FC<{ initialEnabled: boolean, link: string }> = (
     } catch (err) {
       console.error(err);
       setEnabled(!newState); // Revert on error
+=======
+      const { data, error } = await supabase.rpc('update_public_form_status', { is_enabled: newState });
+      if (error) throw error;
+      console.log('Update result:', data);
+      if (onStatusChange) onStatusChange(newState);
+    } catch (err) {
+      console.error(err);
+      setEnabled(!enabled); // Revert on error
+      alert('Erro ao atualizar status do formulário.');
+>>>>>>> 47ad34f4e89d90b2c4542364948ec5a39214d924
     } finally {
       setLoading(false);
     }
@@ -773,7 +788,19 @@ const FuncionariosPage: React.FC = () => {
     }
   };
 
+<<<<<<< HEAD
   useEffect(() => { loadData(); }, []);
+=======
+  const fetchFormStatus = async () => {
+    const { data: isEnabled, error } = await supabase.rpc('is_public_form_enabled');
+    if (!error) setPublicLinkEnabled(!!isEnabled);
+  };
+
+  useEffect(() => {
+    loadData();
+    fetchFormStatus();
+  }, []);
+>>>>>>> 47ad34f4e89d90b2c4542364948ec5a39214d924
 
   const handleAction = async (type: 'view' | 'edit' | 'delete', item: Funcionario) => {
     if (type === 'delete') {
@@ -890,7 +917,17 @@ const FuncionariosPage: React.FC = () => {
       type: 'view-content',
       title: 'Compartilhar Cadastro',
       maxWidth: 'max-w-md',
+<<<<<<< HEAD
       content: <ShareModalContent initialEnabled={publicLinkEnabled} link={link} />
+=======
+      content: (
+        <ShareModalContent
+          initialEnabled={publicLinkEnabled}
+          link={link}
+          onStatusChange={setPublicLinkEnabled}
+        />
+      )
+>>>>>>> 47ad34f4e89d90b2c4542364948ec5a39214d924
     });
   };
 

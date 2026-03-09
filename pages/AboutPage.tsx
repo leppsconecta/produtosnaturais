@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Heart, ShieldCheck, Truck, Users } from 'lucide-react';
+<<<<<<< HEAD
 import Navbar from '../components/Navbar';
 import FloatingWhatsApp from '../components/FloatingWhatsApp';
+=======
+>>>>>>> 47ad34f4e89d90b2c4542364948ec5a39214d924
 
 export default function AboutPage() {
   const features = [
@@ -29,10 +32,15 @@ export default function AboutPage() {
   ];
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen font-sans text-earth-800 bg-offwhite flex flex-col">
       <Navbar />
 
       <main className="flex-grow pt-24 pb-12">
+=======
+    <div className="py-32 px-4 sm:px-6 lg:px-8">
+      <main className="flex-grow">
+>>>>>>> 47ad34f4e89d90b2c4542364948ec5a39214d924
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
 
@@ -90,8 +98,11 @@ export default function AboutPage() {
           </div>
         </section>
       </main>
+<<<<<<< HEAD
 
       <FloatingWhatsApp />
+=======
+>>>>>>> 47ad34f4e89d90b2c4542364948ec5a39214d924
     </div>
   );
 }

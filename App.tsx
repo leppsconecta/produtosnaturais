@@ -1,5 +1,9 @@
 import React from 'react';
+<<<<<<< HEAD
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+=======
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+>>>>>>> 47ad34f4e89d90b2c4542364948ec5a39214d924
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Home from './pages/Home';
 import ProductsPage from './pages/ProductsPage';
@@ -15,6 +19,11 @@ import CurriculosPage from './pages/Curriculos';
 import TrabalheConoscoPage from './pages/TrabalheConosco';
 import PublicFormFuncionario from './pages/PublicFormFuncionario';
 import AdminLayout from './components/AdminLayout';
+<<<<<<< HEAD
+=======
+import PublicLayout from './components/PublicLayout';
+
+>>>>>>> 47ad34f4e89d90b2c4542364948ec5a39214d924
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -44,11 +53,25 @@ export default function App() {
             <ScrollToTop />
             <Routes>
               {/* Public Routes */}
+<<<<<<< HEAD
               <Route path="/" element={<Home />} />
               <Route path="/produtos" element={<ProductsPage />} />
               <Route path="/quemsomos" element={<AboutPage />} />
               <Route path="/curriculo" element={<TrabalheConoscoPage />} />
               <Route path="/form-funcionario" element={<PublicFormFuncionario />} />
+=======
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/produtos" element={<ProductsPage />} />
+                <Route path="/quemsomos" element={<AboutPage />} />
+                <Route path="/curriculo" element={<TrabalheConoscoPage />} />
+              </Route>
+
+              {/* Standalone Public Routes (No Header/Footer) */}
+              <Route path="/form-funcionario" element={<PublicFormFuncionario />} />
+
+              {/* Login Route (Outside Layouts) */}
+>>>>>>> 47ad34f4e89d90b2c4542364948ec5a39214d924
               <Route path="/admin/login" element={<AdminLogin />} />
 
               {/* Admin Routes */}
