@@ -670,7 +670,7 @@ const ShareModalContent: React.FC<{ initialEnabled: boolean, link: string, onSta
     setEnabled(newState); // Optimistic update
 
     try {
-      const { data, error } = await supabase.rpc('update_public_form_status', { is_enabled: newState });
+      const { data, error } = await supabase.schema('mdaprodutosnaturais').rpc('update_public_form_status', { p_enabled: newState });
       if (error) throw error;
       console.log('Update result:', data);
       if (onStatusChange) onStatusChange(newState);
@@ -709,7 +709,6 @@ const ShareModalContent: React.FC<{ initialEnabled: boolean, link: string, onSta
           <button
             onClick={() => {
               navigator.clipboard.writeText(link);
-              alert('Copiado!');
             }}
             className="p-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
           >
@@ -778,7 +777,7 @@ const FuncionariosPage: React.FC = () => {
   };
 
   const fetchFormStatus = async () => {
-    const { data: isEnabled, error } = await supabase.rpc('is_public_form_enabled');
+    const { data: isEnabled, error } = await supabase.schema('mdaprodutosnaturais').rpc('is_public_form_enabled');
     if (!error) setPublicLinkEnabled(!!isEnabled);
   };
 
@@ -883,7 +882,7 @@ const FuncionariosPage: React.FC = () => {
   };
 
   const handleShare = () => {
-    const link = `${window.location.origin}/form-funcionario`;
+    const link = `${window.location.origin}/#/form-funcionario`;
 
     setModalConfig({
       isOpen: true,

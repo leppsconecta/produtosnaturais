@@ -44,7 +44,6 @@ export default function App() {
           <CartProvider>
             <ScrollToTop />
             <Routes>
-              {/* Public Routes */}
               <Route element={<PublicLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/produtos" element={<ProductsPage />} />
@@ -52,10 +51,10 @@ export default function App() {
                 <Route path="/curriculo" element={<TrabalheConoscoPage />} />
               </Route>
 
-              {/* Standalone Public Routes (No Header/Footer) */}
+              {/* Standalone routes - sem Header/Footer */}
               <Route path="/form-funcionario" element={<PublicFormFuncionario />} />
 
-              {/* Login Route (Outside Layouts) */}
+              {/* Login Route */}
               <Route path="/admin/login" element={<AdminLogin />} />
 
               {/* Admin Routes */}

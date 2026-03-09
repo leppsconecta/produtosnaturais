@@ -14,7 +14,7 @@ const PublicFormFuncionario: React.FC = () => {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const { data: isEnabled, error } = await supabase.rpc('is_public_form_enabled');
+        const { data: isEnabled, error } = await supabase.schema('mdaprodutosnaturais').rpc('is_public_form_enabled');
 
         if (error) {
           console.error('RPC Error:', error);
