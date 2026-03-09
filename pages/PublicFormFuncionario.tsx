@@ -63,7 +63,7 @@ const PublicFormFuncionario: React.FC = () => {
   const [docVerso, setDocVerso] = useState<File | null>(null);
 
   const fetchRoles = async () => {
-    const { data, error } = await supabase.rpc('manage_cargos_mda', { action_type: 'SELECT_ALL' });
+    const { data, error } = await supabase.schema('mdaprodutosnaturais').rpc('manage_cargos_mda', { action_type: 'SELECT_ALL' });
     if (error) {
       console.error('Erro ao buscar cargos (RPC):', error);
       return;
@@ -88,7 +88,7 @@ const PublicFormFuncionario: React.FC = () => {
   const uploadFile = async (file: File) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `curriculos/${fileName}`;
+    const filePath = `funcionarios/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('mdaprodutosnaturais')
@@ -109,16 +109,18 @@ const PublicFormFuncionario: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Permite que o React renderize o loader antes do upload
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     try {
       let frenteUrl = '';
       let versoUrl = '';
 
-      if (docFrente) {
-        frenteUrl = await uploadFile(docFrente);
-      }
-      if (docVerso) {
-        versoUrl = await uploadFile(docVerso);
-      }
+      const uploadPromises = [];
+      if (docFrente) uploadPromises.push(uploadFile(docFrente).then(url => frenteUrl = url));
+      if (docVerso) uploadPromises.push(uploadFile(docVerso).then(url => versoUrl = url));
+
+      await Promise.all(uploadPromises);
 
       const isFreelancer = formData.tipoContrato === 'Freelancer';
 
@@ -151,7 +153,7 @@ const PublicFormFuncionario: React.FC = () => {
       };
 
       console.log('Sending payload to RPC:', payload);
-      const { data, error } = await supabase.rpc('insert_funcionario_mda', { payload });
+      const { data, error } = await supabase.schema('mdaprodutosnaturais').rpc('insert_funcionario_mda', { payload });
 
       if (error) {
         console.error('RPC Error details:', error);

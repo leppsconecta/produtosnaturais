@@ -20,7 +20,7 @@ export default function CargoManager({ onClose, onUpdate }: { onClose?: () => vo
     const { data: cargos = [], isLoading } = useQuery<Cargo[]>({
         queryKey: ['cargos_mda_admin'],
         queryFn: async () => {
-            const { data, error } = await supabase
+            const { data, error } = await supabase.schema('mdaprodutosnaturais')
                 .rpc('manage_cargos_mda', { action_type: 'SELECT_ALL' });
 
             if (error) {
@@ -33,7 +33,7 @@ export default function CargoManager({ onClose, onUpdate }: { onClose?: () => vo
 
     const addMutation = useMutation({
         mutationFn: async (nome: string) => {
-            const { error } = await supabase
+            const { error } = await supabase.schema('mdaprodutosnaturais')
                 .rpc('manage_cargos_mda', {
                     action_type: 'INSERT',
                     c_nome: nome.trim()
@@ -51,7 +51,7 @@ export default function CargoManager({ onClose, onUpdate }: { onClose?: () => vo
 
     const updateMutation = useMutation({
         mutationFn: async ({ id, nome }: { id: string; nome: string }) => {
-            const { error } = await supabase
+            const { error } = await supabase.schema('mdaprodutosnaturais')
                 .rpc('manage_cargos_mda', {
                     action_type: 'UPDATE',
                     c_id: id,
@@ -68,7 +68,7 @@ export default function CargoManager({ onClose, onUpdate }: { onClose?: () => vo
 
     const deleteMutation = useMutation({
         mutationFn: async (id: string) => {
-            const { error } = await supabase
+            const { error } = await supabase.schema('mdaprodutosnaturais')
                 .rpc('manage_cargos_mda', {
                     action_type: 'DELETE',
                     c_id: id

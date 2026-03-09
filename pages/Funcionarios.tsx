@@ -28,7 +28,7 @@ const FuncionarioDetailsView: React.FC<{ data: Funcionario }> = ({ data }) => {
   const fetchAndDownload = async (type: 'front' | 'back') => {
     setDownloading(type);
     try {
-      const { data: result, error } = await supabase
+      const { data: result, error } = await supabase.schema('mdaprodutosnaturais')
         .from('funcionarios')
         .select(type === 'front' ? 'documento_frente_url' : 'documento_verso_url')
         .eq('id', data.id)
@@ -245,7 +245,7 @@ const FuncionarioForm = React.forwardRef<HTMLFormElement, { onSuccess: () => voi
 
 
   const fetchRoles = async () => {
-    const { data, error } = await supabase.rpc('manage_cargos_mda', { action_type: 'SELECT_ALL' });
+    const { data, error } = await supabase.schema('mdaprodutosnaturais').rpc('manage_cargos_mda', { action_type: 'SELECT_ALL' });
     if (error) {
       console.error('Erro ao buscar cargos (RPC):', error);
       return;
@@ -342,12 +342,15 @@ const FuncionarioForm = React.forwardRef<HTMLFormElement, { onSuccess: () => voi
       const nomeSanitizado = formData.nome.replace(/\s+/g, '_').toLowerCase();
       const ts = Date.now();
 
+      const uploadPromises = [];
       if (docFrente) {
-        frenteUrl = await uploadFile(docFrente, `funcionarios/${nomeSanitizado}_frente_${ts}`);
+        uploadPromises.push(uploadFile(docFrente, `funcionarios/${nomeSanitizado}_frente_${ts}`).then(url => frenteUrl = url));
       }
       if (docVerso) {
-        versoUrl = await uploadFile(docVerso, `funcionarios/${nomeSanitizado}_verso_${ts}`);
+        uploadPromises.push(uploadFile(docVerso, `funcionarios/${nomeSanitizado}_verso_${ts}`).then(url => versoUrl = url));
       }
+
+      await Promise.all(uploadPromises);
 
       // Adiciona URLs ao payload se tiver arquivo
       if (frenteUrl) (payload as any).documento_frente_url = frenteUrl;
@@ -355,7 +358,7 @@ const FuncionarioForm = React.forwardRef<HTMLFormElement, { onSuccess: () => voi
 
       let error;
       if (initialData?.id) {
-        const { error: e } = await supabase
+        const { error: e } = await supabase.schema('mdaprodutosnaturais')
           .rpc('manage_funcionarios_mda', {
             action_type: 'UPDATE',
             f_id: initialData.id,
@@ -363,7 +366,7 @@ const FuncionarioForm = React.forwardRef<HTMLFormElement, { onSuccess: () => voi
           });
         error = e;
       } else {
-        const { error: e } = await supabase
+        const { error: e } = await supabase.schema('mdaprodutosnaturais')
           .rpc('insert_funcionario_mda', {
             payload: {
               ...payload,
@@ -762,7 +765,7 @@ const FuncionariosPage: React.FC = () => {
   const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const { data: result, error } = await supabase
+      const { data: result, error } = await supabase.schema('mdaprodutosnaturais')
         .rpc('manage_funcionarios_mda', { action_type: 'SELECT_ALL' });
 
       if (error) throw error;
@@ -866,21 +869,9 @@ const FuncionariosPage: React.FC = () => {
         maxWidth: 'max-w-4xl'
       });
     } else {
-      // Fetch full details from DB to sync, but EXCLUDE heavy documents for speed (load on demand)
+      // O item vindo da lista principal já contém todos os dados básicos da table graças à query SELECT_ALL.
       let fullData = { ...item };
-      try {
-        const { data, error } = await supabase.rpc('manage_funcionarios_mda', {
-          action_type: 'SELECT_BY_ID',
-          f_id: item.id
-        });
-
-        if (data && !error) {
-          fullData = mapToFuncionario(data, false);
-        }
-      } catch (err) {
-        console.error('Erro ao carregar detalhes:', err);
-      }
-
+      
       setModalConfig({
         isOpen: true,
         type: 'view-content',
