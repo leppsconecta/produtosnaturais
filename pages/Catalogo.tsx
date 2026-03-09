@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Plus,
   Trash2,
@@ -54,7 +54,7 @@ interface CardapioItem {
   preco: string;
   foto?: string;
   ativo: boolean;
-  variacoes?: { nome: string; preco: string }[];
+  variacoes?: { nome: string; unidade: string; qtd: string; preco: string }[];
   isCombo?: boolean;
   comboItens?: ComboProduct[];
   showSavings?: boolean; // Show savings info
@@ -175,7 +175,9 @@ const CardapioPage: React.FC = () => {
     foto: '',
     visivel: true,
     categoria_id: '',
-    variacoes: [] as { nome: string; preco: string }[],
+    unidade: 'Unid',
+    qtd: '',
+    variacoes: [] as { nome: string; unidade: string; qtd: string; preco: string }[],
     shopee_link: '',
     mercadolivre_link: '',
     amazon_link: '',
@@ -1223,7 +1225,9 @@ const CardapioPage: React.FC = () => {
       foto: itemToEdit?.foto || '',
       visivel: itemToEdit?.visivel ?? true,
       categoria_id: itemToEdit?.categoria_id || activeCatId,
-      variacoes: itemToEdit?.variacoes ? itemToEdit.variacoes.map(v => ({ ...v, preco: String(v.preco).replace('.', ',') })) : [],
+      variacoes: itemToEdit?.variacoes ? itemToEdit.variacoes.map(v => ({ ...v, preco: String(v.preco).replace('.', ','), unidade: v.unidade || 'Unid', qtd: v.qtd || '' })) : [],
+      unidade: (itemToEdit as any)?.unidade || 'Unid',
+      qtd: (itemToEdit as any)?.qtd || '',
       shopee_link: itemToEdit?.shopee_link || '',
       mercadolivre_link: itemToEdit?.mercadolivre_link || '',
       amazon_link: itemToEdit?.amazon_link || '',
@@ -2507,83 +2511,136 @@ const CardapioPage: React.FC = () => {
 
                   <div className="space-y-3">
                     {(!formData.variacoes || formData.variacoes.length === 0) ? (
-                      <div className="flex gap-4 items-end animate-in fade-in duration-300">
-                        <div className="flex-1">
-                          <label className="block text-[10px] font-bold text-slate-400 mb-1">TIPO</label>
+                      <div className="space-y-2 animate-in fade-in duration-300">
+                        {/* Headers */}
+                        <div className="flex gap-1.5 px-0.5">
+                          <label className="flex-1 text-[10px] font-bold text-slate-400 uppercase">Tipo</label>
+                          <label className="w-16 text-[10px] font-bold text-slate-400 uppercase">Unid</label>
+                          <label className="w-12 text-[10px] font-bold text-slate-400 uppercase text-center">Qtd</label>
+                          <label className="w-24 text-[10px] font-bold text-slate-400 uppercase">Preço</label>
+                          <div className="w-7" />
+                        </div>
+                        {/* Single price row */}
+                        <div className="flex gap-1.5 items-center">
                           <input
                             type="text"
                             value="Valor único"
                             disabled
-                            className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 font-medium cursor-not-allowed"
+                            className="flex-1 min-w-0 px-3 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-400 font-medium cursor-not-allowed"
                           />
-                        </div>
-                        <div className="flex-1">
-                          <label className="block text-[10px] font-bold text-slate-400 mb-1">VALOR (R$)</label>
-                          <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">R$</span>
+                          <select
+                            value={formData.unidade || 'Unid'}
+                            onChange={(e) => setFormData({ ...formData, unidade: e.target.value })}
+                            className="w-16 px-1.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700 dark:text-slate-200"
+                          >
+                            <option>Unid</option>
+                            <option>Kg</option>
+                            <option>Gram</option>
+                            <option>Ml</option>
+                            <option>Litro</option>
+                          </select>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value={formData.qtd || ''}
+                            onChange={(e) => setFormData({ ...formData, qtd: e.target.value })}
+                            placeholder="1"
+                            className="w-12 px-1.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700 dark:text-slate-200 text-center"
+                          />
+                          <div className="relative w-24">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-medium">R$</span>
                             <input
                               type="text"
                               value={formData.preco}
                               onChange={(e) => setFormData({ ...formData, preco: formatPrice(e.target.value) })}
                               placeholder="0,00"
-                              className="w-full pl-12 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-bold text-slate-700 dark:text-slate-200"
+                              className="w-full pl-6 pr-1.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-bold text-slate-700 dark:text-slate-200"
                             />
                           </div>
+                          <div className="w-7" />
                         </div>
-                        <div className="w-10"></div>
                       </div>
                     ) : (
-                      <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                        {/* Headers */}
+                        <div className="flex gap-1.5 px-0.5">
+                          <label className="flex-1 text-[10px] font-bold text-slate-400 uppercase">Tipo</label>
+                          <label className="w-16 text-[10px] font-bold text-slate-400 uppercase">Unid</label>
+                          <label className="w-12 text-[10px] font-bold text-slate-400 uppercase text-center">Qtd</label>
+                          <label className="w-24 text-[10px] font-bold text-slate-400 uppercase">Preço</label>
+                          <div className="w-7" />
+                        </div>
                         {formData.variacoes.map((variacao, idx) => (
-                          <div key={idx} className="flex gap-3 items-end group">
-                            <div className="flex-1">
-                              {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Variaçãoo</label>}
+                          <div key={idx} className="flex gap-1.5 items-center group">
+                            <input
+                              type="text"
+                              placeholder={idx === 0 ? 'Pequena' : idx === 1 ? 'Média' : 'Grande'}
+                              value={variacao.nome}
+                              onChange={(e) => {
+                                const nv = [...formData.variacoes!];
+                                nv[idx] = { ...nv[idx], nome: e.target.value };
+                                setFormData({ ...formData, variacoes: nv });
+                              }}
+                              className="flex-1 min-w-0 px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700 dark:text-slate-200"
+                            />
+                            <select
+                              value={variacao.unidade || 'Unid'}
+                              onChange={(e) => {
+                                const nv = [...formData.variacoes!];
+                                nv[idx] = { ...nv[idx], unidade: e.target.value };
+                                setFormData({ ...formData, variacoes: nv });
+                              }}
+                              className="w-16 px-1.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700 dark:text-slate-200"
+                            >
+                              <option>Unid</option>
+                              <option>Kg</option>
+                              <option>Gram</option>
+                              <option>Ml</option>
+                              <option>Litro</option>
+                            </select>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              placeholder="1"
+                              value={variacao.qtd || ''}
+                              onChange={(e) => {
+                                const nv = [...formData.variacoes!];
+                                nv[idx] = { ...nv[idx], qtd: e.target.value };
+                                setFormData({ ...formData, variacoes: nv });
+                              }}
+                              className="w-12 px-1.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700 dark:text-slate-200 text-center"
+                            />
+                            <div className="relative w-24">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">R$</span>
                               <input
                                 type="text"
-                                placeholder={idx === 0 ? "Pequena" : idx === 1 ? "Média" : "Grande"}
-                                value={variacao.nome}
+                                placeholder="0,00"
+                                value={variacao.preco}
                                 onChange={(e) => {
-                                  const newVariacoes = [...formData.variacoes!];
-                                  newVariacoes[idx].nome = e.target.value;
-                                  setFormData({ ...formData, variacoes: newVariacoes });
+                                  const nv = [...formData.variacoes!];
+                                  nv[idx] = { ...nv[idx], preco: formatPrice(e.target.value) };
+                                  setFormData({ ...formData, variacoes: nv });
                                 }}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700 dark:text-slate-200"
+                                className="w-full pl-6 pr-1.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-slate-700 dark:text-slate-200 text-right"
                               />
-                            </div>
-                            <div className="w-32">
-                              {idx === 0 && <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Preço</label>}
-                              <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">R$</span>
-                                <input
-                                  type="text"
-                                  placeholder="0,00"
-                                  value={variacao.preco}
-                                  onChange={(e) => {
-                                    const newVariacoes = [...formData.variacoes!];
-                                    newVariacoes[idx].preco = formatPrice(e.target.value);
-                                    setFormData({ ...formData, variacoes: newVariacoes });
-                                  }}
-                                  className="w-full pl-8 pr-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-slate-700 dark:text-slate-200 text-right"
-                                />
-                              </div>
                             </div>
                             <button
                               type="button"
                               onClick={() => {
                                 const newVariacoes = formData.variacoes!.filter((_, i) => i !== idx);
-                                // Se ao remover sobrar apenas 1, volta para o estado de preço único?
                                 if (newVariacoes.length <= 1) {
-                                  // Se sobrou uma, recupera o preço dela para o preco principal
                                   const finalPrice = newVariacoes.length === 1 ? newVariacoes[0].preco : '';
                                   setFormData({ ...formData, variacoes: [], preco: finalPrice });
                                 } else {
                                   setFormData({ ...formData, variacoes: newVariacoes });
                                 }
                               }}
-                              className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                              className="w-7 flex items-center justify-center p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
                               title="Remover preço"
                             >
-                              <Trash2 size={18} />
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         ))}
@@ -2807,9 +2864,9 @@ const CardapioPage: React.FC = () => {
                       />
                     </div>
 
-                    {/* Descriçãoo */}
+                    {/* Descrição */}
                     <div>
-                      <label className="block text-xs font-semibold text-slate-500 mb-2">Descriçãoo</label>
+                      <label className="block text-xs font-semibold text-slate-500 mb-2">Descrição</label>
                       <textarea
                         value={comboFormData.descricao}
                         onChange={(e) => setComboFormData({ ...comboFormData, descricao: e.target.value })}
@@ -3261,5 +3318,6 @@ const CardapioPage: React.FC = () => {
 };
 
 export default CardapioPage;
+
 
 
