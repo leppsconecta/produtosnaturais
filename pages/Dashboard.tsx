@@ -43,6 +43,7 @@ function DonutChart({ segments }: { segments: { color: string; value: number }[]
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 
 interface StatCardProps {
+  key?: React.Key;
   label: string;
   value: number | string;
   icon: React.ReactNode;
