@@ -19,6 +19,7 @@ export default function ProductsPage() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviewType, setReviewType] = useState<'elogio' | 'sugestao' | 'reclamacao' | null>(null);
   const [reviewText, setReviewText] = useState('');
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   // Data State
   const [products, setProducts] = useState<any[]>([]);
@@ -223,6 +224,7 @@ export default function ProductsPage() {
   const handleCloseModal = () => {
     setSelectedProduct(null);
     setSelectedVariation(null);
+    setIsDescExpanded(false);
   };
 
   const handleNextProduct = (e: React.MouseEvent) => {
@@ -258,7 +260,7 @@ export default function ProductsPage() {
             />
             <motion.div
               layoutId={`product-${selectedProduct.id}`}
-              className="relative w-full max-w-[360px] sm:max-w-md md:max-w-none md:w-[900px] md:h-[600px] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[600px]"
+              className="relative w-full max-w-[420px] md:max-w-[700px] bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
             >
               <button
                 onClick={handleCloseModal}
@@ -267,19 +269,19 @@ export default function ProductsPage() {
                 <X className="w-6 h-6 text-olive-900" />
               </button>
 
-              <div className="w-full md:w-1/2 h-52 md:h-full relative bg-earth-100 overflow-hidden flex-shrink-0">
+              <div className="w-full md:w-[320px] aspect-square relative bg-earth-100 overflow-hidden flex-shrink-0">
                 {/* Navigation Buttons */}
                 <button
                   onClick={handlePrevProduct}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/60 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm md:shadow-md"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/60 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
                 >
-                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-olive-900" />
+                  <ChevronLeft className="w-5 h-5 text-olive-900" />
                 </button>
                 <button
                   onClick={handleNextProduct}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/60 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm md:shadow-md"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/60 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
                 >
-                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-olive-900" />
+                  <ChevronRight className="w-5 h-5 text-olive-900" />
                 </button>
                 <img
                   src={selectedProduct.img}
@@ -289,72 +291,102 @@ export default function ProductsPage() {
                 />
               </div>
 
-              <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col h-full overflow-y-auto">
-                <div className="mb-4">
-                  <span className="text-sm font-bold text-mustard-600 uppercase tracking-wider bg-mustard-500/10 px-3 py-1 rounded-full">
+              <div className="flex-1 p-5 md:p-7 flex flex-col h-full overflow-y-auto">
+                <div className="mb-2">
+                  <span className="text-[10px] font-black text-mustard-600 uppercase tracking-widest bg-mustard-500/10 px-2.5 py-1 rounded-full">
                     {categories.find(c => c.id === selectedProduct.category)?.name}
                   </span>
                 </div>
 
-                <h2 className="text-2xl md:text-3xl font-bold text-olive-900 mb-2">{selectedProduct.name}</h2>
-                <p className="text-earth-500 font-medium mb-6">{selectedProduct.weight}</p>
+                <h2 className="text-xl md:text-2xl font-black text-olive-900 mb-1 leading-tight">{selectedProduct.name}</h2>
+                <div className="flex items-center gap-2 mb-4">
+                  <p className="text-earth-400 text-xs font-bold tracking-tight">{selectedProduct.weight}</p>
+                </div>
+
+                {/* Descrição Compacta */}
+                <div className="mb-5">
+                  <p className={`text-earth-600 text-xs leading-relaxed ${!isDescExpanded ? 'line-clamp-2' : ''}`}>
+                    {selectedProduct.desc}
+                  </p>
+                  {selectedProduct.desc && selectedProduct.desc.length > 60 && (
+                    <button 
+                      onClick={() => setIsDescExpanded(!isDescExpanded)}
+                      className="text-[10px] font-black text-mustard-600 uppercase mt-1 hover:underline"
+                    >
+                      {isDescExpanded ? 'Ver Menos' : 'Ver Mais'}
+                    </button>
+                  )}
+                </div>
 
                 {selectedProduct.variacoes && selectedProduct.variacoes.length > 0 && (
-                  <div className="mb-6">
-                    <p className="text-sm font-bold text-earth-400 uppercase tracking-wider mb-3">Escolha uma opção:</p>
-                    <div className="grid grid-cols-1 gap-2">
+                  <div className="mb-5">
+                    <p className="text-[10px] font-black text-earth-400 uppercase tracking-widest mb-2.5">Escolha uma opção:</p>
+                    <div className="space-y-1.5">
                       {selectedProduct.variacoes.map((v: any, idx: number) => (
                         <button
                           key={idx}
                           onClick={() => setSelectedVariation(v)}
-                          className={`flex justify-between items-center p-4 rounded-2xl border-2 transition-all ${
+                          className={`flex justify-between items-center w-full px-4 py-3 rounded-2xl border transition-all ${
                             selectedVariation?.nome === v.nome 
-                              ? 'border-mustard-500 bg-mustard-50' 
+                              ? 'border-mustard-500 bg-mustard-50/50 ring-1 ring-mustard-500' 
                               : 'border-earth-100 bg-white hover:border-earth-200'
                           }`}
                         >
-                          <div className="flex flex-col items-start">
-                            <span className={`font-bold ${selectedVariation?.nome === v.nome ? 'text-olive-900' : 'text-earth-700'}`}>{v.nome}</span>
-                            <span className="text-xs text-earth-500">{v.qtd} {v.unidade}</span>
+                          <div className="flex flex-col items-start flex-1 min-w-0 text-left">
+                            <span className={`text-sm font-black truncate w-full ${selectedVariation?.nome === v.nome ? 'text-olive-900' : 'text-earth-800'}`}>{v.nome}</span>
+                            <span className="text-[10px] font-bold text-earth-400 tracking-tight">{v.qtd} {v.unidade}</span>
                           </div>
-                          <span className="font-black text-olive-900">R$ {parseFloat(v.preco).toFixed(2).replace('.', ',')}</span>
+                          <span className="text-sm font-black text-olive-900 ml-4 whitespace-nowrap">R$ {parseFloat(v.preco).toFixed(2).replace('.', ',')}</span>
                         </button>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div className="mt-auto pt-6 border-t border-earth-100">
-                  <div className="flex items-center justify-center md:justify-start gap-4 mb-6">
-                    <span className="text-sm font-medium text-earth-600">Quantidade:</span>
-                    <div className="flex items-center gap-3 bg-earth-50 rounded-lg p-1">
+                <div className="mt-auto pt-5 border-t border-earth-50">
+                  <div className="flex items-center justify-between gap-4 mb-5">
+                    <span className="text-[10px] font-black text-earth-400 uppercase tracking-widest">Quantidade:</span>
+                    <div className="flex items-center gap-1.5 bg-earth-50 rounded-xl p-1">
                       <button
                         onClick={() => handleQuantityChange(selectedProduct.id, -1)}
-                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-white text-olive-900 hover:bg-earth-100 transition-colors shadow-sm"
+                        className="w-9 h-9 flex items-center justify-center rounded-lg bg-white text-olive-900 hover:bg-earth-100 transition-colors shadow-sm"
                       >
-                        <Minus className="w-4 h-4" />
+                        <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="font-bold text-olive-900 w-10 text-center text-xl">{quantities[selectedProduct.id] || 1}</span>
+                      <span className="font-black text-olive-900 w-7 text-center text-sm">{quantities[selectedProduct.id] || 1}</span>
                       <button
                         onClick={() => handleQuantityChange(selectedProduct.id, 1)}
-                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-white text-olive-900 hover:bg-earth-100 transition-colors shadow-sm"
+                        className="w-9 h-9 flex items-center justify-center rounded-lg bg-white text-olive-900 hover:bg-earth-100 transition-colors shadow-sm"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-center md:justify-start gap-3 w-full">
+                  <div className="flex items-center gap-2.5 w-full">
                     {(() => {
                       const marketplaceLinks = [selectedProduct.shopee_link, selectedProduct.mercadolivre_link, selectedProduct.amazon_link, selectedProduct.aliexpress_link].filter(Boolean);
                       const numLinks = marketplaceLinks.length;
 
                       return (
                         <>
-                          {!isInCart(selectedProduct.id) && <ExternalLinkIcons product={selectedProduct} isBig />}
+                          {!isInCart(selectedProduct.id, selectedVariation?.nome) && (
+                            <div className="flex gap-1.5">
+                              {selectedProduct.shopee_link && (
+                                <a href={selectedProduct.shopee_link} target="_blank" rel="noreferrer" className="w-11 h-11 bg-white border border-earth-100 rounded-xl flex items-center justify-center shadow-sm hover:scale-105 transition-transform">
+                                  <img src="/shopee-logo.png" className="w-7 h-7 object-contain" alt="Shopee" />
+                                </a>
+                              )}
+                              {selectedProduct.mercadolivre_link && (
+                                <a href={selectedProduct.mercadolivre_link} target="_blank" rel="noreferrer" className="w-11 h-11 bg-white border border-earth-100 rounded-xl flex items-center justify-center shadow-sm hover:scale-105 transition-transform">
+                                  <img src="/mercadolivre-logo.png" className="w-7 h-7 object-contain" alt="ML" />
+                                </a>
+                              )}
+                            </div>
+                          )}
 
                           <button
-                            onClick={(e) => {
+                            onClick={() => {
                               if (isInCart(selectedProduct.id, selectedVariation?.nome)) {
                                 removeFromCart(selectedProduct.id, selectedVariation?.nome);
                               } else {
@@ -364,21 +396,19 @@ export default function ProductsPage() {
                               }
                             }}
                             disabled={selectedProduct.variacoes?.length > 0 && !selectedVariation}
-                            className={`flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl group font-black rounded-2xl text-lg ${numLinks > 0 && !isInCart(selectedProduct.id, selectedVariation?.nome)
-                              ? 'w-14 h-14 md:flex-grow md:h-14 px-6'
-                              : 'flex-grow h-14 px-6'
-                              } ${isInCart(selectedProduct.id, selectedVariation?.nome)
-                                ? 'bg-red-500 hover:bg-red-600 text-white'
-                                : 'bg-mustard-500 hover:bg-mustard-600 text-olive-900'
-                              } ${selectedProduct.variacoes?.length > 0 && !selectedVariation ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+                            className={`flex-1 h-11 flex items-center justify-center gap-2 transition-all font-black rounded-xl text-xs sm:text-sm uppercase tracking-wider ${
+                              isInCart(selectedProduct.id, selectedVariation?.nome)
+                                ? 'bg-red-500 text-white'
+                                : 'bg-mustard-500 text-olive-900 shadow-md hover:shadow-lg'
+                            } ${selectedProduct.variacoes?.length > 0 && !selectedVariation ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
                           >
-                            {isInCart(selectedProduct.id, selectedVariation?.nome) ? <Trash2 className="w-6 h-6" /> : <ShoppingCart className="w-6 h-6" />}
-                            <span className={`${(numLinks > 0 && !isInCart(selectedProduct.id, selectedVariation?.nome)) ? 'hidden md:inline' : 'inline'}`}>
+                            {isInCart(selectedProduct.id, selectedVariation?.nome) ? <Trash2 className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
+                            <span>
                               {isInCart(selectedProduct.id, selectedVariation?.nome) 
                                 ? 'Remover' 
                                 : (selectedProduct.variacoes?.length > 0 && !selectedVariation 
-                                    ? 'Selecione uma opção' 
-                                    : (numLinks >= 2 ? 'Adicionar' : 'Adicionar ao Carrinho'))}
+                                    ? 'Escolha uma opção' 
+                                    : 'Adicionar')}
                             </span>
                           </button>
                         </>
@@ -578,8 +608,11 @@ export default function ProductsPage() {
                   transition={{ duration: 0.2 }}
                   className="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-earth-100 flex flex-col h-full relative"
                 >
-                  <div className="relative h-32 md:h-48 overflow-hidden rounded-t-[15px]">
-                    {isInCart(product.id) && (
+                  <div 
+                    className="relative h-32 md:h-48 overflow-hidden rounded-t-[15px] cursor-pointer"
+                    onClick={() => handleOpenModal(product)}
+                  >
+                    {cart.some(item => item.id === product.id) && (
                       <div className="absolute top-2 left-2 z-10 bg-olive-900/90 text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-lg flex items-center gap-1">
                         <ShoppingBag size={10} className="text-mustard-400" />
                         NO CARRINHO
@@ -607,13 +640,18 @@ export default function ProductsPage() {
                       </span>
                     </div>
                     <div className="flex-grow">
-                      <h3 className="text-base md:text-xl font-bold text-olive-900 mb-1 md:mb-2 line-clamp-2">{product.name}</h3>
+                      <h3 
+                        className="text-base md:text-xl font-bold text-olive-900 mb-1 md:mb-2 line-clamp-2 cursor-pointer hover:text-mustard-600 transition-colors"
+                        onClick={() => handleOpenModal(product)}
+                      >
+                        {product.name}
+                      </h3>
                       <p className="text-earth-800 text-xs md:text-sm mb-2 line-clamp-2">{product.desc}</p>
                       <button
                         onClick={() => handleOpenModal(product)}
                         className="text-xs text-mustard-600 font-bold hover:underline mb-4 text-left"
                       >
-                        Ver mais
+                        Ver detalhes
                       </button>
                     </div>
 
@@ -671,13 +709,23 @@ export default function ProductsPage() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleOpenModal(product);
+                                if (product.variacoes && product.variacoes.length > 0) {
+                                  handleOpenModal(product);
+                                } else {
+                                  if (isInCart(product.id)) {
+                                    removeFromCart(product.id);
+                                  } else {
+                                    const quantity = quantities[product.id] || 1;
+                                    addToCart(product, quantity);
+                                    setQuantities(prev => ({ ...prev, [product.id]: 1 }));
+                                  }
+                                }
                               }}
                               className={`flex-grow h-12 flex items-center justify-center gap-2 font-black rounded-xl transition-all shadow-sm group ${
                                 isInCart(product.id)
                                   ? 'bg-red-500 hover:bg-red-600 text-white'
                                   : 'bg-mustard-500 hover:bg-mustard-600 text-olive-900'
-                              }`}
+                              } ${(product.variacoes && product.variacoes.length > 0 && isInCart(product.id)) ? 'opacity-50' : ''}`}
                               title={isInCart(product.id) ? 'Remover do Carrinho' : 'Adicionar ao Carrinho'}
                             >
                               {isInCart(product.id) ? <Trash2 className="w-4 h-4 md:w-5 md:h-5" /> : <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />}
