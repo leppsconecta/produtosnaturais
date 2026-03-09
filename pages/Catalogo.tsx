@@ -1381,23 +1381,22 @@ const CardapioPage: React.FC = () => {
   };
 
   const toggleVisibility = async (itemId: string) => {
-    const item = activeCategory?.itens.find(i => i.id === itemId);
+    // Find item in all categories if not in activeCategory (useful for Search view)
+    let item: CardapioItem | undefined;
+    for (const cat of categorias) {
+      item = cat.itens.find(i => i.id === itemId);
+      if (item) break;
+    }
+
     if (!item) return;
 
     const newVisivel = !item.visivel;
 
-    // Optimistic update first
-    setCategorias(prev => prev.map(cat => {
-      if (cat.id === activeCatId) {
-        return {
-          ...cat,
-          itens: cat.itens.map(i =>
-            i.id === itemId ? { ...i, visivel: newVisivel } : i
-          )
-        };
-      }
-      return cat;
-    }));
+    // Optimistic update
+    setCategorias(prev => prev.map(cat => ({
+      ...cat,
+      itens: cat.itens.map(i => i.id === itemId ? { ...i, visivel: newVisivel } : i)
+    })));
 
     try {
       const { error } = await supabase
@@ -1411,18 +1410,11 @@ const CardapioPage: React.FC = () => {
       showToast(newVisivel ? 'Produto exibido no site.' : 'Produto ocultado do site.', 'success');
     } catch (error: any) {
       console.error('Error toggling visibility:', error);
-      // Revert on error
-      setCategorias(prev => prev.map(cat => {
-        if (cat.id === activeCatId) {
-          return {
-            ...cat,
-            itens: cat.itens.map(i =>
-              i.id === itemId ? { ...i, visivel: !newVisivel } : i
-            )
-          };
-        }
-        return cat;
-      }));
+      // Revert optimism
+      setCategorias(prev => prev.map(cat => ({
+        ...cat,
+        itens: cat.itens.map(i => i.id === itemId ? { ...i, visivel: !newVisivel } : i)
+      })));
       showToast('Erro ao alterar visibilidade: ' + (error?.message || 'Erro desconhecido'), 'error');
     }
   };

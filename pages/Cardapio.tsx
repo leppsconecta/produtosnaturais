@@ -1056,13 +1056,13 @@ const CardapioPage: React.FC = () => {
     try {
       if (hero.id && !hero.id.startsWith('hero-')) {
         await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('hero_images')
           .update(payload)
           .eq('id', hero.id);
       } else {
         const { data, error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('hero_images')
           .insert(payload)
           .select()
@@ -1180,14 +1180,14 @@ const CardapioPage: React.FC = () => {
 
       if (editingCombo) {
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('produtos')
           .update(comboPayload)
           .eq('id', comboId);
         if (error) throw error;
       } else {
         const { data, error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('produtos')
           .insert(comboPayload)
           .select()
@@ -1199,7 +1199,7 @@ const CardapioPage: React.FC = () => {
       // Sync combo items
       // 1. Delete old items
       const { error: delError } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('combo_produtos')
         .delete()
         .eq('combo_id', comboId);
@@ -1217,7 +1217,7 @@ const CardapioPage: React.FC = () => {
       }));
 
       const { error: insError } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('combo_produtos')
         .insert(itemsPayload);
       if (insError) throw insError;
@@ -1328,14 +1328,14 @@ const CardapioPage: React.FC = () => {
 
       if (editingItem) {
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('produtos')
           .update(payload)
           .eq('id', editingItem.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('produtos')
           .insert({
             ...payload,
@@ -1364,7 +1364,7 @@ const CardapioPage: React.FC = () => {
     if (deleteItemModal.itemId) {
       try {
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('produtos')
           .delete()
           .eq('id', deleteItemModal.itemId);
@@ -1420,32 +1420,41 @@ const CardapioPage: React.FC = () => {
   };
 
   const toggleVisibility = async (itemId: string) => {
-    const item = activeCategory?.itens.find(i => i.id === itemId);
+    // Find item in all categories if not in activeCategory
+    let item: CardapioItem | undefined;
+    for (const cat of categorias) {
+      item = cat.itens.find(i => i.id === itemId);
+      if (item) break;
+    }
+
     if (!item) return;
+
+    const newVisivel = !item.visivel;
+
+    // Optimistic update
+    setCategorias(prev => prev.map(cat => ({
+      ...cat,
+      itens: cat.itens.map(i => i.id === itemId ? { ...i, visivel: newVisivel } : i)
+    })));
 
     try {
       const { error } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('produtos')
-        .update({ visivel: !item.visivel })
+        .update({ visivel: newVisivel })
         .eq('id', itemId);
 
       if (error) throw error;
 
-      setCategorias(prev => prev.map(cat => {
-        if (cat.id === activeCatId) {
-          return {
-            ...cat,
-            itens: cat.itens.map(item =>
-              item.id === itemId ? { ...item, visivel: !item.visivel } : item
-            )
-          };
-        }
-        return cat;
-      }));
-    } catch (error) {
+      showToast(newVisivel ? 'Produto exibido no site.' : 'Produto ocultado do site.', 'success');
+    } catch (error: any) {
       console.error('Error toggling visibility:', error);
-      alert('Erro ao alterar visibilidade no banco de dados.');
+      // Revert optimism
+      setCategorias(prev => prev.map(cat => ({
+        ...cat,
+        itens: cat.itens.map(i => i.id === itemId ? { ...i, visivel: !newVisivel } : i)
+      })));
+      showToast('Erro ao alterar visibilidade: ' + (error?.message || 'Erro desconhecido'), 'error');
     }
   };
 
@@ -1520,7 +1529,7 @@ const CardapioPage: React.FC = () => {
       };
 
       const { error } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('destaques_conteudo')
         .upsert(payload, { onConflict: 'categoria_id' });
 
@@ -1550,7 +1559,7 @@ const CardapioPage: React.FC = () => {
     // Persist to DB
     try {
       const { error } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('destaques_conteudo')
         .update({ descricao: tempDesc })
         .eq('categoria_id', editingCatIdForDesc);
@@ -1662,7 +1671,7 @@ const CardapioPage: React.FC = () => {
         };
 
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('destaques_conteudo')
           .upsert(payload, { onConflict: 'categoria_id' });
 
@@ -1721,7 +1730,7 @@ const CardapioPage: React.FC = () => {
 
         // 2. Update DB
         const { error } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('destaques_conteudo')
           .upsert(payload, { onConflict: 'categoria_id' });
 
@@ -1740,7 +1749,7 @@ const CardapioPage: React.FC = () => {
     const newState = !menuOnlineEnabled;
     try {
       const { error } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('config')
         .upsert({ key: 'menu_online_enabled', value: String(newState) }, { onConflict: 'key' });
 

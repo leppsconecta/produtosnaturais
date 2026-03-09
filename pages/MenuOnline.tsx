@@ -290,7 +290,7 @@ const MenuOnline: React.FC = () => {
       // Fetch Menu Status
       try {
         const { data: configData } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('config')
           .select('value')
           .eq('key', 'menu_online_enabled')
@@ -305,7 +305,7 @@ const MenuOnline: React.FC = () => {
 
       // Fetch categories
       const { data: catData, error: catError } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('categorias')
         .select('*')
         .order('ordem', { ascending: true });
@@ -314,7 +314,7 @@ const MenuOnline: React.FC = () => {
 
       // Fetch products
       const { data: prodData, error: prodError } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('produtos')
         .select('*')
         .eq('ativo', true)
@@ -324,7 +324,7 @@ const MenuOnline: React.FC = () => {
 
       // Fetch combo items
       const { data: comboItemData, error: comboItemError } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('combo_produtos')
         .select('*');
 
@@ -332,7 +332,7 @@ const MenuOnline: React.FC = () => {
 
       // Fetch special content (destaques)
       const { data: destaquesData, error: destaquesError } = await supabase
-        .schema('gestaohashi')
+        .schema('mdaprodutosnaturais')
         .from('destaques_conteudo')
         .select('*');
 
@@ -383,7 +383,7 @@ const MenuOnline: React.FC = () => {
       // Fetch Hero Images
       try {
         const { data: heroData, error: heroError } = await supabase
-          .schema('gestaohashi')
+          .schema('mdaprodutosnaturais')
           .from('hero_images')
           .select('*')
           .order('ordem', { ascending: true });
