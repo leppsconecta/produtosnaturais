@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Leaf, Lock } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function AdminLogin() {
     const [email, setEmail] = useState('');
@@ -17,21 +18,21 @@ export default function AdminLogin() {
         setLoading(true);
 
         try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+            const { data, error: signInError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
             });
 
-            const data = await res.json();
+            if (signInError) throw signInError;
 
-            if (!res.ok) {
-                throw new Error(data.error || 'Erro no login');
+            if (data.session) {
+                login(data.session.access_token, data.user?.email || email);
+            } else {
+                throw new Error('Não foi possível obter a sessão após login');
             }
-
-            login(data.token, data.email);
         } catch (err: any) {
-            setError(err.message);
+            console.error(err);
+            setError('Credenciais inválidas ou erro no login');
         } finally {
             setLoading(false);
         }
