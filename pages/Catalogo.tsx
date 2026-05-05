@@ -92,67 +92,30 @@ interface CardapioCategoria {
   itens: CardapioItem[];
 }
 
-
 const INITIAL_CATEGORIAS: CardapioCategoria[] = [
   {
     id: 'cat-1',
-    nome: 'Bebidas',
+    nome: 'Temperos',
     itens: [
-      { id: 'item-1', nome: 'Coca-Cola 350ml', descricao: 'Refrigerante gelado', preco: '6,00', foto: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400', ativo: true, visivel: true },
-      { id: 'item-2', nome: 'Suco Natural Laranja', descricao: 'Suco de laranja natural 500ml', preco: '12,00', foto: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400', ativo: true, visivel: true },
-      { id: 'item-3', nome: 'Ãgua Mineral 500ml', descricao: 'Ãgua mineral sem gás', preco: '4,00', foto: 'https://images.unsplash.com/photo-1559839914-17aae19cec71?w=400', ativo: true, visivel: true },
-      { id: 'item-4', nome: 'Cerveja Heineken', descricao: 'Long neck 330ml', preco: '14,00', foto: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400', ativo: true, visivel: true },
+      { id: 'item-1', nome: 'Açafrão da Terra', descricao: 'Puro e vibrante, ideal para dar cor e sabor.', preco: '12,90', foto: 'https://images.unsplash.com/photo-1615486171448-4afd3710501f?w=400', ativo: true, visivel: true },
+      { id: 'item-2', nome: 'Chimichurri', descricao: 'O clássico argentino para o seu churrasco.', preco: '15,00', foto: 'https://images.unsplash.com/photo-1599909618035-773a65573489?w=400', ativo: true, visivel: true },
+      { id: 'item-3', nome: 'Páprica Defumada', descricao: 'Sabor intenso e aroma marcante.', preco: '14,00', foto: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400', ativo: true, visivel: true },
     ]
   },
   {
     id: 'cat-2',
-    nome: 'Pratos Quentes',
+    nome: 'Chás e Ervas',
     itens: [
-      { id: 'item-5', nome: 'Filé Ã  Parmegiana', descricao: 'Filé empanado com molho de tomate e queijo gratinado, arroz e fritas', preco: '58,90', foto: 'https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=400', ativo: true },
-      { id: 'item-6', nome: 'Risoto de Camarão', descricao: 'Arroz arbóreo cremoso com camarões salteados', preco: '72,00', foto: 'https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?w=400', ativo: true },
-      { id: 'item-7', nome: 'Lasanha Bolonhesa', descricao: 'Massa fresca, molho bolonhesa e bechamel', preco: '45,00', foto: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=400', ativo: true },
+      { id: 'item-4', nome: 'Flor de Camomila', descricao: 'Calmante natural para noites tranquilas.', preco: '8,50', foto: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400', ativo: true },
+      { id: 'item-5', nome: 'Hibisco', descricao: 'Sabor marcante e propriedades diuréticas.', preco: '10,00', foto: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400', ativo: true },
     ]
   },
   {
     id: 'cat-3',
-    nome: 'Pratos Frios',
+    nome: 'Grãos e Oleaginosas',
     itens: [
-      { id: 'item-8', nome: 'Salada Caesar', descricao: 'Alface romana, croutons, parmesão e molho caesar', preco: '32,00', foto: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400', ativo: true },
-      { id: 'item-9', nome: 'Carpaccio', descricao: 'Fatias finas de filé mignon com rúcula e parmesão', preco: '48,00', foto: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400', ativo: true },
-    ]
-  },
-  {
-    id: 'cat-4',
-    nome: 'Sobremesas',
-    itens: [
-      { id: 'item-10', nome: 'Petit Gateau', descricao: 'Bolo de chocolate com recheio cremoso e sorvete', preco: '28,00', foto: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400', ativo: true },
-      { id: 'item-11', nome: 'Pudim de Leite', descricao: 'Pudim tradicional com calda de caramelo', preco: '18,00', foto: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400', ativo: true },
-      { id: 'item-12', nome: 'Brownie com Sorvete', descricao: 'Brownie de chocolate com sorvete de creme', preco: '24,00', foto: 'https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=400', ativo: true },
-    ]
-  },
-  {
-    id: 'cat-5',
-    nome: 'Porções',
-    itens: [
-      { id: 'item-13', nome: 'Batata Frita', descricao: 'Porçãoo de batata frita crocante', preco: '25,00', foto: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400', ativo: true },
-      { id: 'item-14', nome: 'Onion Rings', descricao: 'Anéis de cebola empanados', preco: '28,00', foto: 'https://images.unsplash.com/photo-1639024471283-03518883512d?w=400', ativo: true },
-      { id: 'item-15', nome: 'Mix de Petiscos', descricao: 'Coxinha, bolinha de queijo e pastéis', preco: '45,00', foto: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f25?w=400', ativo: true },
-      {
-        id: 'combo-1',
-        nome: 'Combo Happy Hour',
-        descricao: 'Perfeito para compartilhar! Inclui nossas melhores porções e bebidas.',
-        preco: '89,90',
-        foto: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400',
-        ativo: true,
-        isCombo: true,
-        showSavings: true,
-        savingsAmount: '25,00',
-        comboItens: [
-          { id: 'cp-1', nome: 'Batata Frita', descricao: 'Porçãoo de batata frita crocante', quantidade: '1', unidade: 'Unid' as const, isFromCardapio: true },
-          { id: 'cp-2', nome: 'Onion Rings', descricao: 'Anéis de cebola empanados', quantidade: '1', unidade: 'Unid' as const, isFromCardapio: true },
-          { id: 'cp-3', nome: 'Cerveja Heineken', descricao: 'Long neck 330ml', quantidade: '4', unidade: 'Unid' as const, isFromCardapio: true },
-        ]
-      },
+      { id: 'item-6', nome: 'Castanha do Pará', descricao: 'Rica em selênio e muito nutritiva.', preco: '25,00', foto: 'https://images.unsplash.com/photo-1599576822557-41a457199709?w=400', ativo: true },
+      { id: 'item-7', nome: 'Mix de Castanhas', descricao: 'A combinação perfeita para o seu lanche.', preco: '22,00', foto: 'https://images.unsplash.com/photo-1536588974558-812068804c86?w=400', ativo: true },
     ]
   },
 ];
@@ -359,28 +322,33 @@ const CardapioPage: React.FC = () => {
   const handleConfirmAddCategoria = async () => {
     if (addCategoryModal.name.trim()) {
       try {
-        const { data, error } = await supabase
-          .schema('mdaprodutosnaturais')
-          .from('categorias')
-          .insert({
-            nome: addCategoryModal.name.trim(),
-            ordem: categorias.length,
-            tipo: addCategoryModal.type
+        const token = localStorage.getItem('adminToken');
+        const res = await fetch('/api/categories', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            id: addCategoryModal.name.trim().toLowerCase().replace(/\s+/g, '-'),
+            name: addCategoryModal.name.trim(),
+            icon: 'Leaf'
           })
-          .select()
-          .single();
+        });
 
-        if (error) throw error;
+        if (!res.ok) throw new Error('Erro ao criar categoria');
+        const data = await res.json();
 
         const newCat: CardapioCategoria = {
           id: data.id,
-          nome: data.nome,
-          tipo: data.tipo as 'padrao' | 'especial',
+          nome: data.name,
+          tipo: 'padrao',
           itens: []
         };
         setCategorias([...categorias, newCat]);
         setActiveCatId(newCat.id);
         setAddCategoryModal({ isOpen: false, name: '', type: 'padrao' });
+        showToast('Categoria adicionada com sucesso!');
       } catch (error: any) {
         console.error('Error adding category:', error);
         showToast('Erro ao adicionar categoria: ' + (error.message || 'Erro desconhecido.'), 'error');
@@ -502,66 +470,41 @@ const CardapioPage: React.FC = () => {
     }
   };
 
-  // Fetch data on mount
   const fetchData = async () => {
     setIsLoading(true);
 
-    const safetyTimeout = setTimeout(() => {
-      setIsLoading((loading) => {
-        if (loading) {
-          showToast('Demora na resposta do banco. Recarregue a página.', 'info');
-          return false;
-        }
-        return loading;
-      });
-    }, 10000);
-
     try {
-      // Buscar categorias
-      const { data: catData, error: catError } = await supabase
-        .schema('mdaprodutosnaturais')
-        .from('categorias')
-        .select('*')
-        .order('ordem', { ascending: true });
+      const catRes = await fetch('/api/categories');
+      const catData = await catRes.json();
 
-      if (catError) throw catError;
+      const prodRes = await fetch('/api/products');
+      const prodData = await prodRes.json();
 
-      // Buscar produtos
-      const { data: prodData, error: prodError } = await supabase
-        .schema('mdaprodutosnaturais')
-        .from('produtos')
-        .select('*')
-        .order('ordem', { ascending: true });
-
-      if (prodError) throw prodError;
-
-
-      // Montar estrutura de categorias com seus itens
       const categoriasComItens: CardapioCategoria[] = (catData || []).map((cat: any) => {
         const itens: CardapioItem[] = (prodData || [])
-          .filter((p: any) => p.categoria_id === cat.id)
+          .filter((p: any) => p.category === cat.id)
           .map((p: any) => ({
-            id: p.id,
-            nome: p.nome,
-            descricao: p.descricao || '',
-            preco: p.preco != null ? parseFloat(p.preco).toFixed(2).replace('.', ',') : '0,00',
-            foto: p.foto_url || '',
-            ativo: p.ativo ?? true,
-            visivel: p.visivel ?? true,
-            categoria_id: p.categoria_id,
-            variacoes: p.variacoes || [],
-            shopee_link: p.shopee_link || '',
-            mercadolivre_link: p.mercadolivre_link || '',
-            amazon_link: p.amazon_link || '',
-            aliexpress_link: p.aliexpress_link || '',
-            favorito: p.favorito || false,
+            id: p.id.toString(),
+            nome: p.name,
+            descricao: p.desc || '',
+            preco: p.price != null ? parseFloat(p.price).toFixed(2).replace('.', ',') : '0,00',
+            foto: p.img || '',
+            ativo: 1,
+            visivel: p.hidden === 0,
+            categoria_id: p.category,
+            variacoes: [],
+            shopee_link: '',
+            mercadolivre_link: '',
+            amazon_link: '',
+            aliexpress_link: '',
+            favorito: false,
             isCombo: false,
           }));
 
         return {
           id: cat.id,
-          nome: cat.nome,
-          tipo: (cat.tipo || 'padrao') as 'padrao' | 'especial',
+          nome: cat.name,
+          tipo: 'padrao',
           itens,
         };
       });
@@ -574,11 +517,9 @@ const CardapioPage: React.FC = () => {
       console.error('Erro ao carregar catálogo:', error);
       showToast('Erro ao carregar dados. ' + (error.message || ''), 'error');
     } finally {
-      clearTimeout(safetyTimeout);
       setIsLoading(false);
     }
   };
-
 
   useEffect(() => {
     fetchData();
@@ -3305,7 +3246,7 @@ const CardapioPage: React.FC = () => {
           display: none;
         }
       `}</style>
-    </div >
+    </div>
   );
 };
 

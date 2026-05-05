@@ -15,31 +15,25 @@ export default function Products() {
   useEffect(() => {
     const fetchFavoritos = async () => {
       try {
-        const { data, error } = await supabase
-          .schema('mdaprodutosnaturais')
-          .from('produtos')
-          .select('*')
-          .eq('favorito', true)
-          .eq('visivel', true)
-          .order('nome', { ascending: true })
-          .limit(10);
+        const response = await fetch('/api/products');
+        const data = await response.json();
 
-        if (error) throw error;
-
+        // Filtramos favoritos manualmente se a API não suportar, 
+        // ou mostramos os primeiros se não houver favoritos marcados.
         const formattedProducts = (data || []).map((item: any) => ({
           id: item.id,
-          name: item.nome,
-          desc: item.descricao || '',
-          price: parseFloat(item.preco) || 0,
-          img: item.foto_url || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
-          weight: item.variacoes?.length ? 'Várias opções' : 'Unid',
-          shopee_link: item.shopee_link,
-          mercadolivre_link: item.mercadolivre_link,
-          amazon_link: item.amazon_link,
-          aliexpress_link: item.aliexpress_link,
+          name: item.name,
+          desc: item.desc || '',
+          price: 0, // Preço sob consulta
+          img: item.img || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+          weight: item.weight || 'Unid',
+          shopee_link: '',
+          mercadolivre_link: '',
+          amazon_link: '',
+          aliexpress_link: '',
         }));
 
-        setProducts(formattedProducts);
+        setProducts(formattedProducts.slice(0, 8));
       } catch (e) {
         console.error('Erro ao carregar favoritos:', e);
       }

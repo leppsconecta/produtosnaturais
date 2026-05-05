@@ -24,6 +24,11 @@ db.exec(`
     desc TEXT NOT NULL,
     img TEXT NOT NULL,
     hidden BOOLEAN DEFAULT 0,
+    favorito BOOLEAN DEFAULT 0,
+    shopee_link TEXT,
+    mercadolivre_link TEXT,
+    amazon_link TEXT,
+    aliexpress_link TEXT,
     FOREIGN KEY (category) REFERENCES categories (id)
   );
 `);

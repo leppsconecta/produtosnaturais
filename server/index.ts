@@ -100,11 +100,18 @@ app.post('/api/categories', authGuard, (req, res) => {
 
 app.delete('/api/categories/:id', authGuard, (req, res) => {
     try {
+        db.prepare('DELETE FROM products WHERE category = ?').run(req.params.id);
         db.prepare('DELETE FROM categories WHERE id = ?').run(req.params.id);
         res.json({ success: true });
     } catch (error) {
         res.status(400).json({ error: 'Erro ao excluir' });
     }
+});
+
+app.patch('/api/categories/:id', authGuard, (req, res) => {
+    const { name } = req.body;
+    db.prepare('UPDATE categories SET name = ? WHERE id = ?').run(name, req.params.id);
+    res.json({ success: true });
 });
 
 // --- PRODUCTS --- //
@@ -116,9 +123,8 @@ app.get('/api/products', (req, res) => {
 
 // Create product
 app.post('/api/products', authGuard, upload.single('image'), (req, res) => {
-    const { category, name, weight, desc } = req.body;
+    const { category, name, weight, desc, shopee_link, mercadolivre_link, amazon_link, aliexpress_link } = req.body;
 
-    // Imagem pode vir do upload ou ser uma URL predefinida se já tiver no bd fake
     let imgPath = req.body.img;
     if (req.file) {
         imgPath = '/uploads/' + req.file.filename;
@@ -129,9 +135,9 @@ app.post('/api/products', authGuard, upload.single('image'), (req, res) => {
     }
 
     const result = db.prepare(`
-    INSERT INTO products (category, name, weight, desc, img, hidden) 
-    VALUES (?, ?, ?, ?, ?, 0)
-  `).run(category, name, weight, desc, imgPath);
+    INSERT INTO products (category, name, weight, desc, img, hidden, shopee_link, mercadolivre_link, amazon_link, aliexpress_link) 
+    VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+  `).run(category, name, weight, desc, imgPath, shopee_link, mercadolivre_link, amazon_link, aliexpress_link);
 
     const newProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
     res.json(newProduct);
@@ -139,7 +145,7 @@ app.post('/api/products', authGuard, upload.single('image'), (req, res) => {
 
 // Update product
 app.put('/api/products/:id', authGuard, upload.single('image'), (req, res) => {
-    const { category, name, weight, desc, hidden } = req.body;
+    const { category, name, weight, desc, hidden, shopee_link, mercadolivre_link, amazon_link, aliexpress_link } = req.body;
     const isHidden = hidden === 'true' || hidden === true ? 1 : 0;
 
     let imgPath = req.body.img;
@@ -149,12 +155,19 @@ app.put('/api/products/:id', authGuard, upload.single('image'), (req, res) => {
 
     db.prepare(`
     UPDATE products 
-    SET category = ?, name = ?, weight = ?, desc = ?, img = COALESCE(?, img), hidden = ?
+    SET category = ?, name = ?, weight = ?, desc = ?, img = COALESCE(?, img), hidden = ?,
+        shopee_link = ?, mercadolivre_link = ?, amazon_link = ?, aliexpress_link = ?
     WHERE id = ?
-  `).run(category, name, weight, desc, imgPath, isHidden, req.params.id);
+  `).run(category, name, weight, desc, imgPath, isHidden, shopee_link, mercadolivre_link, amazon_link, aliexpress_link, req.params.id);
 
     const updatedProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
     res.json(updatedProduct);
+});
+
+app.patch('/api/products/:id/favorito', authGuard, (req, res) => {
+    const { favorito } = req.body;
+    db.prepare('UPDATE products SET favorito = ? WHERE id = ?').run(favorito ? 1 : 0, req.params.id);
+    res.json({ success: true });
 });
 
 app.delete('/api/products/:id', authGuard, (req, res) => {
@@ -169,44 +182,30 @@ const setupInitialData = () => {
         insertCat.run('temperos', 'Temperos', 'Leaf');
         insertCat.run('chas', 'Chás e Ervas', 'Coffee');
         insertCat.run('graos', 'Grãos e Oleaginosas', 'Wheat');
+        insertCat.run('desidratados', 'Frutas Desidratadas', 'Apple');
+        insertCat.run('mel', 'Mel e Derivados', 'Zap');
 
         const insertProd = db.prepare('INSERT INTO products (category, name, weight, desc, img) VALUES (?, ?, ?, ?, ?)');
 
-        // --- 10 Temperos ---
+        // --- Temperos ---
         insertProd.run('temperos', 'Açafrão da Terra', '150g', 'Puro e vibrante, ideal para dar cor e sabor.', 'https://images.unsplash.com/photo-1615486171448-4afd3710501f?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Alecrim', '50g', 'Aroma fresco e intenso para carnes e batatas.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
         insertProd.run('temperos', 'Chimichurri', '100g', 'O clássico argentino para o seu churrasco.', 'https://images.unsplash.com/photo-1599909618035-773a65573489?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Pápricas (Doce, Defumada, Picante)', '100g', 'Escolha a sua versão favorita.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Pimenta do Reino', '100g', 'O tempero essencial para qualquer cozinha.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Orégano', '50g', 'Perfeito para pizzas, molhos e saladas.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Tempero Baiano', '150g', 'Mistura arretada para pratos cheios de sabor.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Tempero FIT', '150g', 'Sabor sem culpa para suas refeições saudáveis.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Tempero para Feijão', '150g', 'O segredo do feijão perfeito e encorpado.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Vinagrete', '100g', 'Praticidade e sabor para o seu churrasco.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('temperos', 'Páprica Defumada', '100g', 'Sabor intenso e aroma defumado marcante.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('temperos', 'Orégano Chileno', '50g', 'Folhas selecionadas com aroma superior.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
 
-        // --- 10 Chás ---
-        insertProd.run('chas', 'Canela em Casca', '50g', 'Aroma quente e adocicado para chás e doces.', 'https://images.unsplash.com/photo-1559144490-8328294fab4d?q=80&w=600&auto=format&fit=crop');
+        // --- Chás ---
         insertProd.run('chas', 'Flor de Camomila', '50g', 'Calmante natural para noites tranquilas.', 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('chas', 'Capim Limão', '50g', 'Refrescante e digestivo, ótimo quente ou gelado.', 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('chas', 'Chá Verde', '100g', 'Antioxidante poderoso e estimulante natural.', 'https://images.unsplash.com/photo-1627492276010-4ce2688b7277?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('chas', 'Hibisco', '100g', 'Sabor marcante e propriedades diuréticas.', 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('chas', 'Melissa', '50g', 'Erva cidreira para relaxar o corpo e a mente.', 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('chas', 'Espinheira Santa', '50g', 'Aliada da digestão e saúde estomacal.', 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('chas', 'Cavalinha', '50g', 'Ação diurética e rica em minerais.', 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('chas', 'Erva Doce', '50g', 'Sabor suave e propriedades digestivas.', 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('chas', 'Cravo da Índia', '50g', 'Especiaria aromática e termogênica.', 'https://images.unsplash.com/photo-1559144490-8328294fab4d?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('chas', 'Hibisco em Flor', '100g', 'Sabor marcante e propriedades antioxidantes.', 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('chas', 'Canela em Casca', '50g', 'Aroma quente e adocicado para chás e doces.', 'https://images.unsplash.com/photo-1559144490-8328294fab4d?q=80&w=600&auto=format&fit=crop');
 
-        // --- 10 Grãos ---
-        insertProd.run('graos', 'Amendoim Torrado', '200g', 'Energia pura e sabor irresistível.', 'https://images.unsplash.com/photo-1599576822557-41a457199709?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Castanha de Caju', '150g', 'Torrada e crocante, fonte de boas gorduras.', 'https://images.unsplash.com/photo-1599576822557-41a457199709?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Castanha do Pará', '150g', 'Rica em selênio e muito nutritiva.', 'https://images.unsplash.com/photo-1599576822557-41a457199709?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Nozes', '150g', 'Perfeitas para lanches e receitas saudáveis.', 'https://images.unsplash.com/photo-1599576822557-41a457199709?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Mix de Castanhas', '200g', 'A combinação perfeita para o seu lanche.', 'https://images.unsplash.com/photo-1536588974558-812068804c86?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Ameixas', '200g', 'Doces, suculentas e ricas em fibras.', 'https://images.unsplash.com/photo-1536588974558-812068804c86?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Aveia', '200g', 'Base nutritiva para o seu café da manhã.', 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Semente de Chia', '150g', 'Superalimento rico em fibras e ômega 3.', 'https://images.unsplash.com/photo-1588600878108-578307a3cc9d?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Semente de Abóbora', '150g', 'Rica em ferro e zinco, ideal para saladas.', 'https://images.unsplash.com/photo-1588600878108-578307a3cc9d?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Semente de Girassol', '150g', 'Crocante e nutritiva para os seus lanches.', 'https://images.unsplash.com/photo-1588600878108-578307a3cc9d?q=80&w=600&auto=format&fit=crop');
+        // --- Grãos ---
+        insertProd.run('graos', 'Castanha do Pará', '150g', 'Rica em selênio e fundamental para a saúde.', 'https://images.unsplash.com/photo-1599576822557-41a457199709?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('graos', 'Amêndoa Torrada', '150g', 'Crocante e nutritiva, fonte de vitamina E.', 'https://images.unsplash.com/photo-1599576822557-41a457199709?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('graos', 'Mix de Castanhas Premium', '200g', 'A combinação perfeita de energia e sabor.', 'https://images.unsplash.com/photo-1536588974558-812068804c86?q=80&w=600&auto=format&fit=crop');
+
+        // --- Desidratados ---
+        insertProd.run('desidratados', 'Damasco Turco', '200g', 'Doce e macio, rico em fibras e betacaroteno.', 'https://images.unsplash.com/photo-1595436065982-f54f676046e7?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('desidratados', 'Uva Passa Preta', '150g', 'Energia natural para seu dia a dia.', 'https://images.unsplash.com/photo-1595436065982-f54f676046e7?q=80&w=600&auto=format&fit=crop');
     }
 };
 setupInitialData();

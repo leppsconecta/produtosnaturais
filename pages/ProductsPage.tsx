@@ -28,33 +28,37 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const [{ data: prodData }, { data: catData }] = await Promise.all([
-          supabase.schema('mdaprodutosnaturais').from('produtos').select('*').eq('visivel', true).order('ordem'),
-          supabase.schema('mdaprodutosnaturais').from('categorias').select('id, nome').order('ordem'),
+        const [prodRes, catRes] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/categories')
         ]);
+        
+        const prodData = await prodRes.json();
+        const catData = await catRes.json();
 
         const formattedProducts = (prodData || []).map((item: any) => ({
           id: item.id,
-          name: item.nome,
-          desc: item.descricao || '',
-          price: parseFloat(item.preco) || 0,
-          img: item.foto_url || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
-          weight: item.variacoes?.length ? 'Várias opções' : 'Unid',
-          category: item.categoria_id || 'sem-categoria',
-          favorito: item.favorito || false,
-          variacoes: item.variacoes || [],
-          shopee_link: item.shopee_link,
-          mercadolivre_link: item.mercadolivre_link,
-          amazon_link: item.amazon_link,
-          aliexpress_link: item.aliexpress_link,
+          name: item.name,
+          desc: item.desc || '',
+          price: 0, // Preço sob consulta
+          img: item.img || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+          weight: item.weight || 'Unid',
+          category: item.category || 'sem-categoria',
+          favorito: false,
+          variacoes: [],
+          shopee_link: '',
+          mercadolivre_link: '',
+          amazon_link: '',
+          aliexpress_link: '',
         }));
 
         setProducts(formattedProducts);
 
-        const hasDestaques = formattedProducts.some(p => p.favorito);
-        const formattedCats = (catData || []).map((c: any) => ({ id: c.id, name: c.nome }));
-        setCategories(hasDestaques ? [DESTAQUE_CAT, ...formattedCats] : formattedCats);
-        setActiveCategory(hasDestaques ? 'destaque' : (formattedCats[0]?.id || 'todos'));
+        const formattedCats = (catData || []).map((c: any) => ({ id: c.id, name: c.name }));
+        setCategories(formattedCats);
+        if (formattedCats.length > 0) {
+          setActiveCategory(formattedCats[0].id);
+        }
       } catch (e) {
         console.error('Erro ao carregar produtos:', e);
       }

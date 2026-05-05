@@ -17,17 +17,19 @@ export default function AdminLogin() {
         setLoading(true);
 
         try {
-            // Requisitado pelo usuário: Login simples temporário
-            if (email === 'felipelepefe@gmail.com' && password === '123') {
-                // Simula um delay
-                await new Promise(resolve => setTimeout(resolve, 800));
-                
-                // Gera um token falso para manter a sessão (base64 simple)
-                const fakeToken = btoa(JSON.stringify({ email, exp: Date.now() + 86400000 }));
-                login(fakeToken, email);
-            } else {
-                throw new Error('Credenciais inválidas');
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erro ao realizar login');
             }
+
+            login(data.token, data.email);
         } catch (err: any) {
             console.error(err);
             setError(err.message || 'Erro no login');

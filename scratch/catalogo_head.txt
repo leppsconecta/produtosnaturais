@@ -1,0 +1,600 @@
+﻿import React, { useState, useRef, useEffect } from 'react';
+import {
+  Plus,
+  Trash2,
+  Edit3,
+  Image as ImageIcon,
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  Grid3X3,
+
+  ArrowUp,
+  ArrowDown,
+  Save,
+  X,
+  GripVertical,
+  Check,
+  Upload,
+  Video,
+  Loader2,
+  Filter,
+  Search,
+  Layers,
+  MoreVertical,
+  Eye,
+  EyeOff,
+  Sparkles,
+  Star,
+  AlertTriangle,
+  CheckCircle,
+  Info
+} from 'lucide-react';
+import Modal from '../components/UI/Modal';
+import { ModalType } from '../types';
+import { supabase } from '../lib/supabase';
+
+// Produto incluÃ­do em um combo
+interface ComboProduct {
+  id: string;
+  nome: string;
+  descricao?: string;
+  quantidade: string; // Ex: "3"
+  unidade: 'Unid' | 'g' | 'ml'; // Unit type
+  foto?: string;
+  isFromCardapio?: boolean;
+  originalItemId?: string;
+  useOriginalDescription?: boolean;
+}
+
+interface CardapioItem {
+  id: string;
+  nome: string;
+  descricao: string;
+  preco: string;
+  foto?: string;
+  ativo: boolean;
+  variacoes?: { nome: string; unidade: string; qtd: string; preco: string }[];
+  isCombo?: boolean;
+  comboItens?: ComboProduct[];
+  showSavings?: boolean; // Show savings info
+  savingsAmount?: string; // Amount saved, e.g., "15,00"
+  visivel?: boolean; // New property for visibility
+  categoria_id?: string; // Add category reference
+  shopee_link?: string;
+  mercadolivre_link?: string;
+  amazon_link?: string;
+  aliexpress_link?: string;
+  favorito?: boolean; // Flag to indicate if product is featured on Home
+}
+
+interface DestaqueMidia {
+  url: string;
+  type: 'image' | 'video';
+  duration?: number;
+}
+
+interface DestaqueConteudo {
+  id: string;
+  categoriaId: string;
+  titulo: string;
+  descricao: string;
+  preco?: string;
+  midias: DestaqueMidia[];
+  ativo: boolean;
+}
+
+interface CardapioCategoria {
+  id: string;
+  nome: string;
+  tipo?: 'padrao' | 'especial';
+  destaque?: DestaqueConteudo;
+  itens: CardapioItem[];
+}
+
+const INITIAL_CATEGORIAS: CardapioCategoria[] = [
+  {
+    id: 'cat-1',
+    nome: 'Temperos',
+    itens: [
+      { id: 'item-1', nome: 'AÃ§afrÃ£o da Terra', descricao: 'Puro e vibrante, ideal para dar cor e sabor.', preco: '12,90', foto: 'https://images.unsplash.com/photo-1615486171448-4afd3710501f?w=400', ativo: true, visivel: true },
+      { id: 'item-2', nome: 'Chimichurri', descricao: 'O clÃ¡ssico argentino para o seu churrasco.', preco: '15,00', foto: 'https://images.unsplash.com/photo-1599909618035-773a65573489?w=400', ativo: true, visivel: true },
+      { id: 'item-3', nome: 'PÃ¡prica Defumada', descricao: 'Sabor intenso e aroma marcante.', preco: '14,00', foto: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400', ativo: true, visivel: true },
+    ]
+  },
+  {
+    id: 'cat-2',
+    nome: 'ChÃ¡s e Ervas',
+    itens: [
+      { id: 'item-4', nome: 'Flor de Camomila', descricao: 'Calmante natural para noites tranquilas.', preco: '8,50', foto: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400', ativo: true },
+      { id: 'item-5', nome: 'Hibisco', descricao: 'Sabor marcante e propriedades diurÃ©ticas.', preco: '10,00', foto: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400', ativo: true },
+    ]
+  },
+  {
+    id: 'cat-3',
+    nome: 'GrÃ£os e Oleaginosas',
+    itens: [
+      { id: 'item-6', nome: 'Castanha do ParÃ¡', descricao: 'Rica em selÃªnio e muito nutritiva.', preco: '25,00', foto: 'https://images.unsplash.com/photo-1599576822557-41a457199709?w=400', ativo: true },
+      { id: 'item-7', nome: 'Mix de Castanhas', descricao: 'A combinaÃ§Ã£o perfeita para o seu lanche.', preco: '22,00', foto: 'https://images.unsplash.com/photo-1536588974558-812068804c86?w=400', ativo: true },
+    ]
+  },
+];
+
+const CardapioPage: React.FC = () => {
+  const [categorias, setCategorias] = useState<CardapioCategoria[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeCatId, setActiveCatId] = useState<string>('cat-1');
+
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const [modalConfig, setModalConfig] = useState<any>({ isOpen: false });
+  const [editingItem, setEditingItem] = useState<CardapioItem | null>(null);
+  const [formData, setFormData] = useState({
+    nome: '',
+    descricao: '',
+    preco: '',
+    foto: '',
+    visivel: true,
+    categoria_id: '',
+    unidade: 'Unid',
+    qtd: '',
+    variacoes: [] as { nome: string; unidade: string; qtd: string; preco: string }[],
+    shopee_link: '',
+    mercadolivre_link: '',
+    amazon_link: '',
+    aliexpress_link: ''
+  });
+  const [showLinkInputs, setShowLinkInputs] = useState({
+    shopee: false,
+    mercadolivre: false,
+    amazon: false,
+    aliexpress: false
+  });
+  const [tempId, setTempId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Toast State
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; visible: boolean }>({
+    message: '',
+    type: 'info',
+    visible: false
+  });
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type, visible: true });
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, visible: false }));
+    }, 3000);
+  };
+
+  // Category name editing
+
+  // Category name editing
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState('');
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
+
+  // Drag and drop state
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
+
+  // Category Drag and drop state
+  const [draggedCatId, setDraggedCatId] = useState<string | null>(null);
+  const [dragOverCatId, setDragOverCatId] = useState<string | null>(null);
+
+  // File upload state
+  const [isUploading, setIsUploading] = useState(false);
+  const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Combo modal state
+  const [comboModalOpen, setComboModalOpen] = useState(false);
+  const [editingCombo, setEditingCombo] = useState<CardapioItem | null>(null);
+  const [comboFormData, setComboFormData] = useState({
+    nome: '',
+    descricao: '',
+    preco: '',
+    foto: '',
+    showSavings: false,
+    savingsAmount: ''
+  });
+  const [comboProducts, setComboProducts] = useState<ComboProduct[]>([]);
+  const [newComboProduct, setNewComboProduct] = useState<{
+    nome: string;
+    descricao: string;
+    quantidade: string;
+    unidade: 'Unid' | 'g' | 'ml';
+    useOriginalDescription: boolean;
+  }>({ nome: '', descricao: '', quantidade: '', unidade: 'Unid', useOriginalDescription: true });
+  const [selectedProduct, setSelectedProduct] = useState<(CardapioItem & { categoryName: string }) | null>(null);
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+  const [showProductSuggestions, setShowProductSuggestions] = useState(false);
+  const comboFileInputRef = useRef<HTMLInputElement>(null);
+  const [isComboUploading, setIsComboUploading] = useState(false);
+
+  // Add dropdown state
+  const [showAddDropdown, setShowAddDropdown] = useState(false);
+
+  // Favoritos state
+  const [favoritosModalOpen, setFavoritosModalOpen] = useState(false);
+  const [tempFavoritos, setTempFavoritos] = useState<string[]>([]);
+  const [isSavingFavoritos, setIsSavingFavoritos] = useState(false);
+  const [favoritosSuccess, setFavoritosSuccess] = useState(false);
+
+  const saveFavoritos = async (selectedIds: string[]) => {
+    setIsSavingFavoritos(true);
+    try {
+      const { error } = await supabase
+        .rpc('update_favoritos', { p_ids: selectedIds });
+
+      if (error) throw error;
+
+      // Update local state
+      setCategorias(prev => prev.map(cat => ({
+        ...cat,
+        itens: cat.itens.map(item => ({ ...item, favorito: selectedIds.includes(item.id) }))
+      })));
+
+      showToast(`${selectedIds.length} produto(s) marcado(s) como favorito!`, 'success');
+      setFavoritosSuccess(true);
+      setTimeout(() => {
+        setFavoritosSuccess(false);
+        setFavoritosModalOpen(false);
+      }, 1500);
+    } catch (err: any) {
+      console.error('Erro ao salvar favoritos:', err);
+      showToast('Erro ao salvar: ' + (err?.message || JSON.stringify(err)), 'error');
+    } finally {
+      setIsSavingFavoritos(false);
+    }
+  };
+
+
+  // Filter state
+  const [showFilter, setShowFilter] = useState(false);
+  const [filterQuery, setFilterQuery] = useState('');
+
+  // Hero images state (up to 3 images for menu cover)
+  interface HeroImage {
+    id: string;
+    foto: string;
+    titulo: string; // max 20 characters
+    subtitulo: string; // max 50 characters
+    showDescription: boolean;
+  }
+  const [heroImagesExpanded, setHeroImagesExpanded] = useState(false);
+  const [heroImages, setHeroImages] = useState<HeroImage[]>([
+    { id: 'hero-1', foto: '', titulo: '', subtitulo: '', showDescription: false },
+    { id: 'hero-2', foto: '', titulo: '', subtitulo: '', showDescription: false },
+    { id: 'hero-3', foto: '', titulo: '', subtitulo: '', showDescription: false }
+  ]);
+  const [uploadingHeroIndex, setUploadingHeroIndex] = useState<number | null>(null);
+  const heroFileInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+
+  // Section expanded states
+  const [productsExpanded, setProductsExpanded] = useState(true); // Default expanded
+
+  // Menu Online state
+  const [menuOnlineEnabled, setMenuOnlineEnabled] = useState(true);
+  const [isUpdatingMenuStatus, setIsUpdatingMenuStatus] = useState(false);
+
+  // Estado para upload de mÃ­dia (Categoria Especial)
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+
+  // Function to focus on one section and collapse others
+  const focusSection = (section: 'hero' | 'products', resetCategory = false, shouldScroll = true) => {
+    setHeroImagesExpanded(section === 'hero');
+    setProductsExpanded(section === 'products');
+
+    if (resetCategory && categorias.length > 0) {
+      setActiveCatId(categorias[0].id);
+    }
+
+    // Scroll to top only if requested
+    if (shouldScroll) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Custom Modals State
+  const [deleteCategoryModal, setDeleteCategoryModal] = useState<{ isOpen: boolean, categoryId: string | null }>({ isOpen: false, categoryId: null });
+  const [deleteItemModal, setDeleteItemModal] = useState<{ isOpen: boolean, itemId: string | null }>({ isOpen: false, itemId: null });
+  const [addCategoryModal, setAddCategoryModal] = useState<{ isOpen: boolean, name: string, type: 'padrao' | 'especial' }>({ isOpen: false, name: '', type: 'padrao' });
+  const [itemMenuOpen, setItemMenuOpen] = useState<string | null>(null);
+  const [itemMenuPosition, setItemMenuPosition] = useState<{ top: number, left: number }>({ top: 0, left: 0 });
+
+  // Description Modal State
+  const [descModalOpen, setDescModalOpen] = useState(false);
+  const [editingCatIdForDesc, setEditingCatIdForDesc] = useState<string | null>(null);
+  const [tempDesc, setTempDesc] = useState('');
+
+
+
+  // ... (rest of the code)
+
+  const handleAddCategoria = () => {
+    setAddCategoryModal({ isOpen: true, name: '', type: 'padrao' });
+  };
+
+  const handleConfirmAddCategoria = async () => {
+    if (addCategoryModal.name.trim()) {
+      try {
+        const { data, error } = await supabase
+          .schema('mdaprodutosnaturais')
+          .from('categorias')
+          .insert({
+            nome: addCategoryModal.name.trim(),
+            ordem: categorias.length,
+            tipo: addCategoryModal.type
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        const newCat: CardapioCategoria = {
+          id: data.id,
+          nome: data.nome,
+          tipo: data.tipo as 'padrao' | 'especial',
+          itens: []
+        };
+        setCategorias([...categorias, newCat]);
+        setActiveCatId(newCat.id);
+        setAddCategoryModal({ isOpen: false, name: '', type: 'padrao' });
+      } catch (error: any) {
+        console.error('Error adding category:', error);
+        showToast('Erro ao adicionar categoria: ' + (error.message || 'Erro desconhecido.'), 'error');
+      }
+    }
+  };
+
+  // Get all products from all categories for autocomplete
+  const allProducts = categorias.flatMap(cat =>
+    cat.itens.filter(item => !item.isCombo).map(item => ({ ...item, categoryName: cat.nome }))
+  );
+
+  // Filtered products for autocomplete
+  const filteredProducts = productSearchQuery.length >= 1
+    ? allProducts.filter(p =>
+      p.nome.toLowerCase().includes(productSearchQuery.toLowerCase())
+    ).slice(0, 5)
+    : [];
+
+  // File upload handler with validations
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+
+    if (!isImage && !isVideo) {
+      showToast('Formato nÃ£o suportado. Use imagens ou vÃ­deos.', 'error');
+      return;
+    }
+
+    // Size validation: 10MB for images, 90MB for videos
+    const maxSize = isVideo ? 90 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast(`Arquivo muito grande. Limite: ${isVideo ? '90MB' : '10MB'}`, 'error');
+      return;
+    }
+
+    // Video duration validation (max 30 seconds)
+    if (isVideo) {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+
+      const durationCheck = new Promise<boolean>((resolve) => {
+        video.onloadedmetadata = () => {
+          URL.revokeObjectURL(video.src);
+          if (video.duration > 30) {
+            alert('VÃ­deo muito longo. Limite: 30 segundos.');
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        };
+        video.onerror = () => {
+          alert('Erro ao processar o vÃ­deo.');
+          resolve(false);
+        };
+      });
+
+      video.src = URL.createObjectURL(file);
+      const isValid = await durationCheck;
+      if (!isValid) return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      // Use existing ID, temp ID, or generate new temp ID
+      const fileId = editingItem?.id || tempId || crypto.randomUUID();
+      if (!editingItem && !tempId) setTempId(fileId);
+
+      const fileName = `${fileId}.${fileExt}`;
+      const filePath = `produtos/${fileName}`;
+
+      // 1. Delete old image/video if exists
+      if (formData.foto) {
+        const oldPath = extractPathFromUrl(formData.foto);
+        if (oldPath) {
+          await supabase.storage
+            .from('mdaprodutosnaturais')
+            .remove([oldPath]);
+        }
+      }
+
+      const { error: uploadError } = await supabase.storage
+        .from('mdaprodutosnaturais')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('mdaprodutosnaturais')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, foto: publicUrl }));
+      setMediaType(isVideo ? 'video' : 'image');
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      showToast('Erro ao fazer upload: ' + error.message, 'error');
+    } finally {
+      setIsUploading(false);
+    }
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const activeCategory = categorias.find(c => c.id === activeCatId);
+
+  // Check scroll capability
+  const checkScroll = () => {
+    const container = tabsContainerRef.current;
+    if (container) {
+      setCanScrollLeft(container.scrollLeft > 0);
+      setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 5);
+    }
+  };
+
+  const fetchData = async () => {
+    setIsLoading(true);
+
+    try {
+      const catRes = await fetch('/api/categories');
+      const catData = await catRes.json();
+
+      const prodRes = await fetch('/api/products');
+      const prodData = await prodRes.json();
+
+      const categoriasComItens: CardapioCategoria[] = (catData || []).map((cat: any) => {
+        const itens: CardapioItem[] = (prodData || [])
+          .filter((p: any) => p.category === cat.id)
+          .map((p: any) => ({
+            id: p.id.toString(),
+            nome: p.name,
+            descricao: p.desc || '',
+            preco: p.price != null ? parseFloat(p.price).toFixed(2).replace('.', ',') : '0,00',
+            foto: p.img || '',
+            ativo: 1,
+            visivel: p.hidden === 0,
+            categoria_id: p.category,
+            variacoes: [],
+            shopee_link: '',
+            mercadolivre_link: '',
+            amazon_link: '',
+            aliexpress_link: '',
+            favorito: false,
+            isCombo: false,
+          }));
+
+        return {
+          id: cat.id,
+          nome: cat.name,
+          tipo: 'padrao',
+          itens,
+        };
+      });
+
+      setCategorias(categoriasComItens);
+      if (categoriasComItens.length > 0) {
+        setActiveCatId(categoriasComItens[0].id);
+      }
+    } catch (error: any) {
+      console.error('Erro ao carregar catÃ¡logo:', error);
+      showToast('Erro ao carregar dados. ' + (error.message || ''), 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, [categorias]);
+
+
+
+  const toggleDestaqueStatus = async (category: CardapioCategoria) => {
+    if (!category.destaque) return;
+
+    const newStatus = !category.destaque.ativo;
+
+    try {
+      const { error } = await supabase
+        .schema('mdaprodutosnaturais')
+        .from('destaques_conteudo')
+        .update({ ativo: newStatus })
+        .eq('id', category.destaque.id);
+
+      if (error) throw error;
+
+      setCategorias(prev => prev.map(c => {
+        if (c.id === category.id && c.destaque) {
+          return { ...c, destaque: { ...c.destaque, ativo: newStatus } };
+        }
+        return c;
+      }));
+
+    } catch (error) {
+      console.error('Error toggling destaque status:', error);
+      alert('Erro ao alterar status.');
+    }
+  };
+
+  const scrollTabs = (direction: 'left' | 'right') => {
+    const container = tabsContainerRef.current;
+    if (container) {
+      const scrollAmount = 200;
+      container.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+      setTimeout(checkScroll, 300);
+    }
+  };
+
+
+
+  const handleDeleteCategoria = (id: string) => {
+    setDeleteCategoryModal({ isOpen: true, categoryId: id });
+  };
+
+  const handleConfirmDeleteCategoria = async () => {
+    if (deleteCategoryModal.categoryId) {
+      try {
+        const categoryToDelete = categorias.find(c => c.id === deleteCategoryModal.categoryId);
+
+        // 1. Delete associated Storage files
+        if (categoryToDelete) {
+          const filesToDelete: string[] = [];
+
+          // Collect Product Images
+          categoryToDelete.itens.forEach(item => {
+            if (item.foto) {
+              const oldPath = extractPathFromUrl(item.foto);
+              if (oldPath) filesToDelete.push(oldPath);
+            }
+          });
+
+          // Collect Destaque Media
+          if (categoryToDelete.destaque && categoryToDelete.destaque.midias) {
+            categoryToDelete.destaque.midias.forEach(midia => {
+              if (midia.url) {
+                const oldPath = extractPathFromUrl(midia.url);
+                if (oldPath) filesToDelete.push(oldPath);
+              }
+            });
