@@ -25,6 +25,8 @@ db.exec(`
     img TEXT NOT NULL,
     hidden BOOLEAN DEFAULT 0,
     favorito BOOLEAN DEFAULT 0,
+    is_combo BOOLEAN DEFAULT 0,
+    variacoes TEXT,
     shopee_link TEXT,
     mercadolivre_link TEXT,
     amazon_link TEXT,

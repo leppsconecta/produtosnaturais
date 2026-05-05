@@ -34,6 +34,12 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
 
+app.post('/api/upload', authGuard, upload.single('file'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    res.json({ url: fileUrl });
+});
+
 const JWT_SECRET = 'mda-super-secret-key-change-in-prod';
 
 // --- AUTH --- //
@@ -135,9 +141,9 @@ app.post('/api/products', authGuard, upload.single('image'), (req, res) => {
     }
 
     const result = db.prepare(`
-    INSERT INTO products (category, name, weight, desc, img, hidden, shopee_link, mercadolivre_link, amazon_link, aliexpress_link) 
-    VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
-  `).run(category, name, weight, desc, imgPath, shopee_link, mercadolivre_link, amazon_link, aliexpress_link);
+    INSERT INTO products (category, name, weight, desc, img, hidden, favorito, is_combo, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link) 
+    VALUES (?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?, ?, ?)
+  `).run(category, name, weight, desc, imgPath, is_combo ? 1 : 0, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link);
 
     const newProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
     res.json(newProduct);
@@ -155,10 +161,10 @@ app.put('/api/products/:id', authGuard, upload.single('image'), (req, res) => {
 
     db.prepare(`
     UPDATE products 
-    SET category = ?, name = ?, weight = ?, desc = ?, img = COALESCE(?, img), hidden = ?,
-        shopee_link = ?, mercadolivre_link = ?, amazon_link = ?, aliexpress_link = ?
+    SET category = ?, name = ?, weight = ?, desc = ?, img = COALESCE(?, img), hidden = ?, 
+        is_combo = ?, variacoes = ?, shopee_link = ?, mercadolivre_link = ?, amazon_link = ?, aliexpress_link = ?
     WHERE id = ?
-  `).run(category, name, weight, desc, imgPath, isHidden, shopee_link, mercadolivre_link, amazon_link, aliexpress_link, req.params.id);
+  `).run(category, name, weight, desc, imgPath, isHidden, is_combo ? 1 : 0, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link, req.params.id);
 
     const updatedProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
     res.json(updatedProduct);

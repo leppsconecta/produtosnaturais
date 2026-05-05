@@ -581,67 +581,26 @@ const CardapioPage: React.FC = () => {
   const handleConfirmDeleteCategoria = async () => {
     if (deleteCategoryModal.categoryId) {
       try {
-        const categoryToDelete = categorias.find(c => c.id === deleteCategoryModal.categoryId);
-
-        // 1. Delete associated Storage files
-        if (categoryToDelete) {
-          const filesToDelete: string[] = [];
-
-          // Collect Product Images
-          categoryToDelete.itens.forEach(item => {
-            if (item.foto) {
-              const oldPath = extractPathFromUrl(item.foto);
-              if (oldPath) filesToDelete.push(oldPath);
-            }
-          });
-
-          // Collect Destaque Media
-          if (categoryToDelete.destaque && categoryToDelete.destaque.midias) {
-            categoryToDelete.destaque.midias.forEach(midia => {
-              if (midia.url) {
-                const oldPath = extractPathFromUrl(midia.url);
-                if (oldPath) filesToDelete.push(oldPath);
-              }
-            });
+        const token = localStorage.getItem('adminToken');
+        const res = await fetch(`/api/categories/${deleteCategoryModal.categoryId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
+        });
 
-          // Execute Batch Delete if files exist
-          if (filesToDelete.length > 0) {
-            const { error: storageError } = await supabase.storage
-              .from('mdaprodutosnaturais')
-              .remove(filesToDelete);
+        if (!res.ok) throw new Error('Erro ao excluir categoria');
 
-            if (storageError) {
-              console.error('Error deleting files from storage:', storageError);
-              // We continue to delete from DB even if specific files fail, 
-              // or we could stop. Usually better to clean up DB even if artifacts remain.
-            }
-          }
-        }
-
-        // 2. Delete from Database
-        const { error } = await supabase
-          .schema('mdaprodutosnaturais')
-          .from('categorias')
-          .delete()
-          .eq('id', deleteCategoryModal.categoryId);
-
-        if (error) throw error;
-
-        // 3. Update Local State
-        setCategorias(categorias.filter(c => c.id !== deleteCategoryModal.categoryId));
-        if (activeCatId === deleteCategoryModal.categoryId && categorias.length > 1) {
-          const remaining = categorias.filter(c => c.id !== deleteCategoryModal.categoryId);
-          if (remaining.length > 0) {
-            setActiveCatId(remaining[0].id);
-          }
+        const newCategorias = categorias.filter(c => c.id !== deleteCategoryModal.categoryId);
+        setCategorias(newCategorias);
+        if (activeCatId === deleteCategoryModal.categoryId && newCategorias.length > 0) {
+          setActiveCatId(newCategorias[0].id);
         }
         setDeleteCategoryModal({ isOpen: false, categoryId: null });
-        showToast('Categoria e dados associados excluídos com sucesso!', 'success');
-
-      } catch (error) {
+        showToast('Categoria excluída com sucesso!', 'success');
+      } catch (error: any) {
         console.error('Error deleting category:', error);
-        alert('Erro ao excluir categoria do banco de dados.');
+        showToast('Erro ao excluir: ' + error.message, 'error');
       }
     }
   };
@@ -649,20 +608,25 @@ const CardapioPage: React.FC = () => {
   const handleUpdateCategoryName = async (id: string) => {
     if (editingCategoryName.trim()) {
       try {
-        const { error } = await supabase
-          .schema('mdaprodutosnaturais')
-          .from('categorias')
-          .update({ nome: editingCategoryName.trim() })
-          .eq('id', id);
+        const token = localStorage.getItem('adminToken');
+        const res = await fetch(`/api/categories/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ name: editingCategoryName.trim() })
+        });
 
-        if (error) throw error;
+        if (!res.ok) throw new Error('Erro ao atualizar categoria');
 
         setCategorias(prev => prev.map(cat =>
           cat.id === id ? { ...cat, nome: editingCategoryName.trim() } : cat
         ));
-      } catch (error) {
-        console.error('Error updating category name:', error);
-        alert('Erro ao atualizar nome da categoria.');
+        showToast('Categoria atualizada com sucesso!', 'success');
+      } catch (error: any) {
+        console.error('Error updating category:', error);
+        showToast('Erro ao atualizar: ' + error.message, 'error');
       }
     }
     setEditingCategoryId(null);
