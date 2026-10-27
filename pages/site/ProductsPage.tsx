@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, ShoppingCart, Search, ChevronLeft, ChevronRight, Plus, Minus, X, Trash2, ThumbsUp, MessageCircle, ThumbsDown, Send } from 'lucide-react';
-import { useCart } from '../context/CartContext';
-import { supabase } from '../lib/supabase';
+import { useCart } from '../../context/CartContext';
+import { supabase } from '../../lib/supabase';
 
 const ITEMS_PER_PAGE = 20;
 

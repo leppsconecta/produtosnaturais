@@ -5,8 +5,8 @@ import {
     CalendarDays, ClipboardList, ChevronLeft, ChevronRight, Moon, Sun,
     Utensils, Megaphone, Terminal, Ticket, Star, UserCheck
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { AppRoute } from '../types';
+import { useAuth } from '../../context/AuthContext';
+import { AppRoute } from '../../types';
 
 export default function AdminLayout() {
     const { logout } = useAuth();

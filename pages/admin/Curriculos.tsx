@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, StickyNote, Download } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import Table from '../components/UI/Table';
-import Modal from '../components/UI/Modal';
-import RoleManager from '../components/RoleManager';
-import { ModalType } from '../types';
-import { supabase } from '../lib/supabase';
+import Table from '../../components/UI/Table';
+import Modal from '../../components/UI/Modal';
+import RoleManager from '../../components/admin/RoleManager';
+import { ModalType } from '../../types';
+import { supabase } from '../../lib/supabase';
 
 // Tipo local baseado nos campos da tabela public.curriculos
 interface CurriculoRow {

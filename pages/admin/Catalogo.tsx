@@ -30,9 +30,9 @@ import {
   CheckCircle,
   Info
 } from 'lucide-react';
-import Modal from '../components/UI/Modal';
-import { ModalType } from '../types';
-import { supabase } from '../lib/supabase';
+import Modal from '../../components/UI/Modal';
+import { ModalType } from '../../types';
+import { supabase } from '../../lib/supabase';
 
 // Produto incluído em um combo
 interface ComboProduct {

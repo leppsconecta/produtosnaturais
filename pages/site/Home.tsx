@@ -1,11 +1,8 @@
-import Navbar from '../components/Navbar';
-import Hero from '../components/Hero';
-import Products from '../components/Products';
-import Wholesale from '../components/Wholesale';
-import Testimonials from '../components/Testimonials';
-import Contact from '../components/Contact';
-import Footer from '../components/Footer';
-import FloatingWhatsApp from '../components/FloatingWhatsApp';
+import Hero from '../../components/site/Hero';
+import Products from '../../components/site/Products';
+import Wholesale from '../../components/site/Wholesale';
+import Testimonials from '../../components/site/Testimonials';
+import Contact from '../../components/site/Contact';
 
 export default function Home() {
   return (

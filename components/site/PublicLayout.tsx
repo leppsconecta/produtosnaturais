@@ -3,7 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import FloatingWhatsApp from './FloatingWhatsApp';
-import ScrollToTop from './ScrollToTop';
+import ScrollToTop from '../UI/ScrollToTop';
 
 export default function PublicLayout() {
     const location = useLocation();

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Briefcase, User, CreditCard, Upload, MapPin, FileText, CheckCircle, Search, ChevronDown, CheckCircle2, Loader2
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import ScrollToTop from '../components/ScrollToTop';
+import { supabase } from '../../lib/supabase';
+import ScrollToTop from '../../components/UI/ScrollToTop';
 
 const PublicFormFuncionario: React.FC = () => {
   const [loading, setLoading] = useState(false);

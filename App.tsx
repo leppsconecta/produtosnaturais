@@ -1,26 +1,28 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Home from './pages/Home';
-import ProductsPage from './pages/ProductsPage';
-import AboutPage from './pages/AboutPage';
-import AdminLogin from './pages/AdminLogin';
-import DashboardPage from './pages/Dashboard';
-import FeedbacksPage from './pages/Feedbacks';
-import FuncionariosPage from './pages/Funcionarios';
-import CatalogoPage from './pages/Catalogo';
-import EscalaPage from './pages/Escala';
-import FichaTecnicaPage from './pages/FichaTecnica';
-import CurriculosPage from './pages/Curriculos';
-import TrabalheConoscoPage from './pages/TrabalheConosco';
-import PublicFormFuncionario from './pages/PublicFormFuncionario';
-import AdminLayout from './components/AdminLayout';
-import PublicLayout from './components/PublicLayout';
+import Home from './pages/site/Home';
+import ProductsPage from './pages/site/ProductsPage';
+import AboutPage from './pages/site/AboutPage';
+import TrabalheConoscoPage from './pages/site/TrabalheConosco';
+import PublicFormFuncionario from './pages/site/PublicFormFuncionario';
+
+import AdminLogin from './pages/admin/AdminLogin';
+import DashboardPage from './pages/admin/Dashboard';
+import FeedbacksPage from './pages/admin/Feedbacks';
+import FuncionariosPage from './pages/admin/Funcionarios';
+import CatalogoPage from './pages/admin/Catalogo';
+import EscalaPage from './pages/admin/Escala';
+import FichaTecnicaPage from './pages/admin/FichaTecnica';
+import CurriculosPage from './pages/admin/Curriculos';
+
+import AdminLayout from './components/admin/AdminLayout';
+import PublicLayout from './components/site/PublicLayout';
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import CartSidebar from './components/CartSidebar';
-import ScrollToTop from './components/ScrollToTop';
+import CartSidebar from './components/site/CartSidebar';
+import ScrollToTop from './components/UI/ScrollToTop';
 
 const queryClient = new QueryClient({
   defaultOptions: {

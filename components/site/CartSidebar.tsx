@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Trash2, Send, ShoppingBag } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 export default function CartSidebar() {
   const { cart, removeFromCart, updateQuantity, clearCart, isSidebarOpen, toggleSidebar } = useCart();

@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Plus, Share2, Eye, Edit3, Trash2, Briefcase, User, CreditCard, Upload, MapPin, FileText, Check, Copy, Settings, Search, ChevronDown
 } from 'lucide-react';
-import Table, { Column } from '../components/UI/Table';
-import Modal from '../components/UI/Modal';
-import CargoManager from '../components/CargoManager';
+import Table, { Column } from '../../components/UI/Table';
+import Modal from '../../components/UI/Modal';
+import CargoManager from '../../components/admin/CargoManager';
 
-import { Funcionario, ModalType, AppRoute } from '../types';
-import { supabase } from '../lib/supabase';
+import { Funcionario, ModalType, AppRoute } from '../../types';
+import { supabase } from '../../lib/supabase';
 
 const FuncionarioDetailsView: React.FC<{ data: Funcionario }> = ({ data }) => {
   const [downloading, setDownloading] = useState<string | null>(null);

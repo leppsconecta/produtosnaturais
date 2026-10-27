@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, ArrowRight, Plus, Minus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { supabase } from '../lib/supabase';
+import { useCart } from '../../context/CartContext';
+import { supabase } from '../../lib/supabase';
 
 export default function Products() {
   const { addToCart, removeFromCart, cart } = useCart();

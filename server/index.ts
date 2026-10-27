@@ -34,13 +34,28 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
 
+const JWT_SECRET = 'mda-super-secret-key-change-in-prod';
+
+// Middleware to protect routes
+const authGuard = (req: any, res: any, next: any) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Token ausente' });
+
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (err) {
+        res.status(401).json({ error: 'Token inválido' });
+    }
+};
+
 app.post('/api/upload', authGuard, upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Nenhum arquivo enviado' });
     const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
     res.json({ url: fileUrl });
 });
-
-const JWT_SECRET = 'mda-super-secret-key-change-in-prod';
 
 // --- AUTH --- //
 
@@ -71,21 +86,6 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
     res.json({ token, email: user.email });
 });
-
-// Middleware to protect routes
-const authGuard = (req: any, res: any, next: any) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ error: 'Token ausente' });
-
-    const token = authHeader.split(' ')[1];
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (err) {
-        res.status(401).json({ error: 'Token inválido' });
-    }
-};
 
 // --- CATEGORIES --- //
 
@@ -129,7 +129,7 @@ app.get('/api/products', (req, res) => {
 
 // Create product
 app.post('/api/products', authGuard, upload.single('image'), (req, res) => {
-    const { category, name, weight, desc, shopee_link, mercadolivre_link, amazon_link, aliexpress_link } = req.body;
+    const { category, name, weight, desc, is_combo, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link } = req.body;
 
     let imgPath = req.body.img;
     if (req.file) {
@@ -151,7 +151,7 @@ app.post('/api/products', authGuard, upload.single('image'), (req, res) => {
 
 // Update product
 app.put('/api/products/:id', authGuard, upload.single('image'), (req, res) => {
-    const { category, name, weight, desc, hidden, shopee_link, mercadolivre_link, amazon_link, aliexpress_link } = req.body;
+    const { category, name, weight, desc, hidden, is_combo, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link } = req.body;
     const isHidden = hidden === 'true' || hidden === true ? 1 : 0;
 
     let imgPath = req.body.img;
