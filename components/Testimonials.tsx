@@ -75,35 +75,35 @@ export default function Testimonials() {
     const prev = () => setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
 
     return (
-        <section className="py-24 bg-white relative overflow-hidden" id="feedbacks">
+        <section className="py-10 md:py-16 bg-white relative overflow-hidden" id="feedbacks">
             {/* Background Decor */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-mustard-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-olive-900/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col items-center">
-                <div className="text-center max-w-3xl mx-auto mb-16">
+                <div className="text-center max-w-3xl mx-auto mb-6 md:mb-10">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-olive-100/50 text-olive-900 mb-6"
+                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-olive-100/50 text-olive-900 mb-3 md:mb-4"
                     >
-                        <Star className="w-5 h-5 text-mustard-500 fill-current" />
-                        <span className="font-bold tracking-wider uppercase text-sm">O Que Dizem Nossos Clientes</span>
+                        <Star className="w-4 h-4 md:w-5 md:h-5 text-mustard-500 fill-current" />
+                        <span className="font-bold tracking-wider uppercase text-xs md:text-sm">O Que Dizem Nossos Clientes</span>
                     </motion.div>
                     <motion.h2
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="text-4xl md:text-5xl font-black text-olive-900 mb-6"
+                        className="text-3xl md:text-5xl font-black text-olive-900 mb-2"
                     >
                         Aprovado em todo o <span className="text-[#5A1788]">Brasil</span>
                     </motion.h2>
                 </div>
 
                 {/* Carousel Container */}
-                <div className="relative w-full max-w-4xl mx-auto px-10 md:px-16 flex items-center min-h-[300px]">
+                <div className="relative w-full max-w-4xl mx-auto px-2 sm:px-10 md:px-16 flex items-center">
 
                     <button
                         onClick={prev}
@@ -121,7 +121,7 @@ export default function Testimonials() {
                         <ChevronRight className="w-6 h-6" />
                     </button>
 
-                    <div className="w-full relative overflow-hidden flex flex-col justify-center min-h-[250px] md:min-h-[200px]">
+                    <div className="w-full relative overflow-hidden flex flex-col justify-center">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={currentIndex}
@@ -129,25 +129,25 @@ export default function Testimonials() {
                                 animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
                                 exit={{ opacity: 0, x: -20, filter: 'blur(4px)' }}
                                 transition={{ duration: 0.4, ease: "easeOut" }}
-                                className="w-full bg-offwhite/50 backdrop-blur-sm rounded-[2rem] p-8 md:p-12 shadow-sm border border-earth-100/50 flex flex-col items-center text-center"
+                                className="w-full bg-offwhite/50 backdrop-blur-sm rounded-[2rem] p-6 md:p-10 shadow-sm border border-earth-100/50 flex flex-col items-center text-center"
                             >
-                                <div className="flex gap-1 mb-6 text-mustard-500">
+                                <div className="flex gap-1 mb-4 text-mustard-500">
                                     {[...Array(testimonials[currentIndex].rating)].map((_, i) => (
                                         <Star key={i} className="w-5 h-5 fill-current" />
                                     ))}
                                 </div>
 
-                                <div className="relative mb-8 max-w-2xl mx-auto">
-                                    <Quote className="absolute -top-6 -left-6 md:-left-10 w-10 h-10 text-earth-200 opacity-40" />
-                                    <p className="text-xl md:text-2xl text-earth-800 leading-relaxed font-medium italic relative z-10">
+                                <div className="relative mb-5 max-w-2xl mx-auto">
+                                    <Quote className="absolute -top-4 -left-4 md:-left-10 w-8 h-8 md:w-10 md:h-10 text-earth-200 opacity-40" />
+                                    <p className="text-lg md:text-2xl text-earth-800 leading-relaxed font-medium italic relative z-10">
                                         "{testimonials[currentIndex].text}"
                                     </p>
                                 </div>
 
                                 <div className="flex flex-col items-center">
-                                    <p className="font-bold text-lg text-olive-900 mb-1">{testimonials[currentIndex].name}</p>
+                                    <p className="font-bold text-lg text-olive-900 mb-0.5">{testimonials[currentIndex].name}</p>
                                     <p className="text-sm font-medium text-mustard-600 mb-1">{testimonials[currentIndex].role}</p>
-                                    <div className="flex items-center gap-1.5 text-earth-500 text-sm font-bold bg-white px-3 py-1 mt-2 rounded-full shadow-sm border border-earth-100">
+                                    <div className="flex items-center gap-1.5 text-earth-500 text-sm font-bold bg-white px-3 py-1 mt-1.5 rounded-full shadow-sm border border-earth-100">
                                         <MapPin className="w-4 h-4 text-mustard-500" />
                                         {testimonials[currentIndex].state}
                                     </div>
@@ -158,7 +158,7 @@ export default function Testimonials() {
                 </div>
 
                 {/* Carousel Dots */}
-                <div className="flex justify-center gap-2 mt-10 z-20">
+                <div className="flex justify-center gap-2 mt-6 md:mt-8 z-20">
                     {testimonials.map((_, idx) => (
                         <button
                             key={idx}

@@ -70,12 +70,12 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-[60] transition-transform duration-300 bg-[#5A1788] shadow-md h-16 flex items-center ${
-        (isVisible || isProductsPage) ? 'translate-y-0' : '-translate-y-0 md:-translate-y-full'
+      className={`fixed top-0 left-0 right-0 z-[60] transition-transform duration-300 bg-[#5A1788] shadow-md ${
+        (isVisible || isProductsPage || isMobileMenuOpen) ? 'translate-y-0' : '-translate-y-0 md:-translate-y-full'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-16 flex items-center">
+        <div className="flex justify-between items-center w-full">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <img
@@ -140,12 +140,13 @@ export default function Navbar() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-offwhite border-t border-earth-200 overflow-hidden"
+            initial={{ opacity: 0, height: 0, y: -8 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="md:hidden absolute top-full left-0 right-0 w-full bg-offwhite border-t border-earth-200 shadow-xl overflow-hidden origin-top z-50"
           >
-            <div className="px-4 pt-2 pb-6 space-y-1">
+            <div className="px-4 pt-2 pb-5 space-y-1 flex flex-col">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}

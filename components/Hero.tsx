@@ -34,7 +34,7 @@ export default function Hero() {
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
-    <section id="inicio" className="relative h-[55vh] sm:h-[65vh] md:h-[75vh] lg:h-[85vh] w-full flex items-end justify-center overflow-hidden group">
+    <section id="inicio" className="relative mt-16 md:mt-0 aspect-[1080/1700] md:aspect-auto md:h-[75vh] lg:h-[85vh] w-full flex items-end justify-center overflow-hidden group">
       {/* Carousel Background */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -46,7 +46,7 @@ export default function Hero() {
           className="absolute inset-0 z-0"
         >
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat transform scale-105 transition-transform duration-1000"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat md:scale-105 transition-transform duration-1000"
             style={{ backgroundImage: `url("${slides[currentSlide].image}")` }}
             role="img"
             aria-label={slides[currentSlide].alt}

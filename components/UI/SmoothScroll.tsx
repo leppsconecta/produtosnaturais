@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 
@@ -17,8 +18,19 @@ export const smoothScrollTo = (target: any, options?: any) => {
 };
 
 export default function SmoothScroll() {
+  const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith('/admin');
+
   useEffect(() => {
-    // Instancia o Lenis para efeito de scroll suave com desaceleração inercial
+    if (isAdminRoute) {
+      if (lenisInstance) {
+        lenisInstance.destroy();
+        lenisInstance = null;
+      }
+      return;
+    }
+
+    // Instancia o Lenis para efeito de scroll suave com desaceleração inercial nas páginas públicas
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -45,7 +57,7 @@ export default function SmoothScroll() {
       lenis.destroy();
       lenisInstance = null;
     };
-  }, []);
+  }, [isAdminRoute]);
 
   return null;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import {
     LogOut, LayoutDashboard, Package, MessageSquare, Users, FileText,
@@ -11,6 +11,11 @@ import { AppRoute } from '../types';
 export default function AdminLayout() {
     const { logout } = useAuth();
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+    const mobileNavRef = useRef<HTMLDivElement>(null);
+    const isDraggingNav = useRef(false);
+    const dragMoved = useRef(false);
+    const startX = useRef(0);
+    const scrollLeftStart = useRef(0);
     const [isDarkMode, setIsDarkMode] = useState(() => {
         // Verifica se há preferência salva ou se o sistema prefere dark
         const saved = localStorage.getItem('admin_theme');
@@ -57,7 +62,10 @@ export default function AdminLayout() {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row font-sans h-screen overflow-hidden">
+        <div
+            data-lenis-prevent
+            className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col lg:flex-row font-sans lg:h-screen lg:overflow-hidden"
+        >
             {/* Sidebar Desktop */}
             <aside className={`bg-[#5A1788] text-white flex-col hidden lg:flex shrink-0 transition-all duration-300 ease-in-out relative ${isSidebarExpanded ? 'w-64' : 'w-20'}`}>
 
@@ -118,49 +126,110 @@ export default function AdminLayout() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto bg-slate-50 dark:bg-[#0B0F19] p-4 md:p-8 pb-24 lg:pb-8">
+            <main
+                data-lenis-prevent
+                className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-50 dark:bg-[#0B0F19] px-4 pt-10 pb-32 md:p-8 lg:pb-8"
+            >
                 {/* Page Content */}
                 <Outlet />
             </main>
 
             {/* Bottom Navigation Mobile/Tablet */}
-            <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-[#5A1788] text-white lg:hidden px-2 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.2)]">
-                <div className="flex justify-center items-center gap-2 overflow-x-auto no-scrollbar max-w-full mx-auto px-2">
-                    {links.map((link) => (
-                        <NavLink
-                            key={link.path}
-                            to={link.path}
-                            end={link.path === AppRoute.DASHBOARD}
-                            className={({ isActive }) =>
-                                `flex flex-col items-center justify-center min-w-[56px] py-1 transition-all duration-300 ${isActive ? 'text-white' : 'text-white/40'
-                                }`
-                            }
+            <nav
+                data-lenis-prevent
+                className="fixed bottom-0 left-0 right-0 z-[100] bg-[#5A1788] text-white lg:hidden py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.25)]"
+            >
+                <div
+                    ref={mobileNavRef}
+                    onWheel={(e) => {
+                        if (mobileNavRef.current && e.deltaY !== 0) {
+                            mobileNavRef.current.scrollLeft += e.deltaY;
+                        }
+                    }}
+                    onMouseDown={(e) => {
+                        if (!mobileNavRef.current) return;
+                        isDraggingNav.current = true;
+                        dragMoved.current = false;
+                        startX.current = e.pageX - mobileNavRef.current.offsetLeft;
+                        scrollLeftStart.current = mobileNavRef.current.scrollLeft;
+                    }}
+                    onMouseMove={(e) => {
+                        if (!isDraggingNav.current || !mobileNavRef.current) return;
+                        const x = e.pageX - mobileNavRef.current.offsetLeft;
+                        const walk = x - startX.current;
+                        if (Math.abs(walk) > 5) {
+                            dragMoved.current = true;
+                            e.preventDefault();
+                            mobileNavRef.current.scrollLeft = scrollLeftStart.current - walk * 1.5;
+                        }
+                    }}
+                    onMouseUp={() => {
+                        isDraggingNav.current = false;
+                    }}
+                    onMouseLeave={() => {
+                        isDraggingNav.current = false;
+                    }}
+                    className="w-full overflow-x-auto overflow-y-hidden touch-pan-x select-none cursor-grab active:cursor-grabbing"
+                    style={{ WebkitOverflowScrolling: 'touch' }}
+                >
+                    <div className="flex items-center gap-3 w-max mx-auto px-4">
+                        {links.map((link) => (
+                            <NavLink
+                                key={link.path}
+                                to={link.path}
+                                end={link.path === AppRoute.DASHBOARD}
+                                onClick={(e) => {
+                                    if (dragMoved.current) {
+                                        e.preventDefault();
+                                        dragMoved.current = false;
+                                    }
+                                }}
+                                draggable={false}
+                                className={({ isActive }) =>
+                                    `flex flex-col items-center justify-center min-w-[64px] shrink-0 py-1.5 transition-all duration-300 ${isActive ? 'text-white' : 'text-white/50'
+                                    }`
+                                }
+                            >
+                                {({ isActive }) => (
+                                    <div className={`p-3 rounded-2xl transition-all duration-300 ${isActive ? 'bg-white/15 scale-110 shadow-lg' : 'hover:bg-white/5'
+                                        }`}>
+                                        {React.cloneElement(link.icon as React.ReactElement, { className: 'w-7 h-7' })}
+                                    </div>
+                                )}
+                            </NavLink>
+                        ))}
+                        {/* Dark Mode and Logout at the end of mobile nav */}
+                        <button
+                            onClick={(e) => {
+                                if (dragMoved.current) {
+                                    e.preventDefault();
+                                    dragMoved.current = false;
+                                    return;
+                                }
+                                setIsDarkMode(!isDarkMode);
+                            }}
+                            className="flex flex-col items-center justify-center min-w-[64px] shrink-0 py-1.5 text-white/50 hover:text-white transition-all"
                         >
-                            {({ isActive }) => (
-                                <div className={`p-2.5 rounded-2xl transition-all duration-300 ${isActive ? 'bg-white/10 scale-110 shadow-lg' : 'hover:bg-white/5'
-                                    }`}>
-                                    {isActive ? React.cloneElement(link.icon as React.ReactElement, { className: 'w-6 h-6' }) : link.icon}
-                                </div>
-                            )}
-                        </NavLink>
-                    ))}
-                    {/* Dark Mode and Logout at the end of mobile nav */}
-                    <button
-                        onClick={() => setIsDarkMode(!isDarkMode)}
-                        className="flex flex-col items-center justify-center min-w-[56px] py-1 text-white/40 hover:text-white transition-all"
-                    >
-                        <div className="p-2.5 rounded-2xl hover:bg-white/5">
-                            {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
-                        </div>
-                    </button>
-                    <button
-                        onClick={logout}
-                        className="flex flex-col items-center justify-center min-w-[56px] py-1 text-red-400 hover:text-red-300 transition-all"
-                    >
-                        <div className="p-2.5 rounded-2xl hover:bg-red-500/10">
-                            <LogOut className="w-6 h-6" />
-                        </div>
-                    </button>
+                            <div className="p-3 rounded-2xl hover:bg-white/5">
+                                {isDarkMode ? <Sun className="w-7 h-7" /> : <Moon className="w-7 h-7" />}
+                            </div>
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                if (dragMoved.current) {
+                                    e.preventDefault();
+                                    dragMoved.current = false;
+                                    return;
+                                }
+                                logout();
+                            }}
+                            className="flex flex-col items-center justify-center min-w-[64px] shrink-0 py-1.5 text-red-400 hover:text-red-300 transition-all"
+                        >
+                            <div className="p-3 rounded-2xl hover:bg-red-500/10">
+                                <LogOut className="w-7 h-7" />
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </nav>
         </div>

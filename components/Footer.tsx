@@ -25,9 +25,9 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-earth-800 text-earth-100 pt-16 pb-8 border-t border-earth-800">
+    <footer className="bg-earth-800 text-earth-100 pt-10 md:pt-14 pb-6 md:pb-8 border-t border-earth-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 mb-8 md:mb-12">
 
           {/* Brand */}
           <div className="col-span-1 lg:col-span-1">

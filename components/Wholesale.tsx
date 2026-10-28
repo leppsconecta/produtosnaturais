@@ -26,31 +26,31 @@ export default function Wholesale() {
   ];
 
   return (
-    <section id="atacado" className="py-24 bg-[#5A178A] text-offwhite relative overflow-hidden">
+    <section id="atacado" className="py-10 md:py-16 bg-[#5A178A] text-offwhite relative overflow-hidden">
       {/* Background pattern */}
       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#99CC33 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 md:mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-mustard-500 font-semibold tracking-wider uppercase text-sm mb-4 block">
+            <span className="text-mustard-500 font-semibold tracking-wider uppercase text-sm mb-2 md:mb-4 block">
               Para o seu negócio ou sua casa
             </span>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4">
               Atacado e Varejo
             </h2>
-            <p className="text-lg text-earth-200 max-w-2xl mx-auto font-light">
+            <p className="text-base md:text-lg text-earth-200 max-w-2xl mx-auto font-light">
               Temos a solução perfeita para a sua necessidade. Seja para abastecer a despensa de casa ou o estoque do seu comércio.
             </p>
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 mb-16">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 mb-8 md:mb-12">
           {benefits.map((benefit, index) => {
             const Icon = benefit.icon;
             return (
