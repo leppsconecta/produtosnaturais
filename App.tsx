@@ -24,6 +24,7 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import CartSidebar from './components/site/CartSidebar';
 import ScrollToTop from './components/UI/ScrollToTop';
+import SmoothScroll from './components/UI/SmoothScroll';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +46,7 @@ export default function App() {
       <Router>
         <AuthProvider>
           <CartProvider>
+            <SmoothScroll />
             <ScrollToTop />
             <Routes>
               <Route element={<PublicLayout />}>

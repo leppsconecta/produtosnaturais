@@ -12,6 +12,8 @@ export default function Navbar() {
 
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
+  const isProductsPage = location.pathname === '/produtos';
+
   useEffect(() => {
     let lastScrollY = window.scrollY;
     const handleScroll = () => {
@@ -28,9 +30,9 @@ export default function Navbar() {
       lastScrollY = currentScrollY;
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   const navLinks = [
     { name: 'Início', href: '/#inicio' },
@@ -42,22 +44,27 @@ export default function Navbar() {
 
   const handleLinkClick = (href: string) => {
     setIsMobileMenuOpen(false);
-    // If we are already on home page and clicking a hash link, we might need to manually scroll if behavior is not automatic
+    // If we are already on home page and clicking a hash link, smoothly scroll to it
     if (location.pathname === '/' && href.startsWith('/#')) {
       const id = href.replace('/#', '');
       const element = document.getElementById(id);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        if (window.lenis) {
+          window.lenis.scrollTo(element, { offset: -70 });
+        } else {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
       }
     }
   };
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-[60] transition-transform duration-300 bg-[#5A1788] shadow-md py-3 ${isVisible ? 'translate-y-0' : '-translate-y-0 md:-translate-y-full'
-        }`}
+      className={`fixed top-0 left-0 right-0 z-[60] transition-transform duration-300 bg-[#5A1788] shadow-md h-16 flex items-center ${
+        (isVisible || isProductsPage) ? 'translate-y-0' : '-translate-y-0 md:-translate-y-full'
+      }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">

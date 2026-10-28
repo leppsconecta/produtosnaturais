@@ -93,7 +93,11 @@ export default function ProductsPage() {
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (window.lenis) {
+        window.lenis.scrollTo(0, { duration: 0.8 });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -299,7 +303,7 @@ export default function ProductsPage() {
                 />
               </div>
 
-              <div className="flex-1 p-5 md:p-7 flex flex-col h-full overflow-y-auto">
+              <div className="flex-1 p-5 md:p-7 flex flex-col h-full overflow-y-auto" data-lenis-prevent>
                 <div className="mb-2">
                   <span className="text-[10px] font-black text-mustard-600 uppercase tracking-widest bg-mustard-500/10 px-2.5 py-1 rounded-full">
                     {categories.find(c => c.id === selectedProduct.category)?.name}
