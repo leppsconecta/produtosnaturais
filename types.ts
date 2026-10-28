@@ -8,6 +8,19 @@ export enum AppRoute {
   CURRICULOS = '/admin/curriculos',
   ESCALA = '/admin/escala',
   FICHA_TECNICA = '/admin/fichatecnica',
+  ARQUIVOS = '/admin/arquivos',
+}
+
+export interface ArquivoItem {
+  id: number;
+  pasta: 'solapa_adesivos' | 'cod_barras_tabelas';
+  subcategoria: string;
+  nome: string;
+  descricao?: string;
+  arquivo_url: string;
+  formato?: string;
+  tamanho?: string;
+  created_at?: string;
 }
 
 export type ModalType = 'confirm-delete' | 'confirm-update' | 'confirm-insert' | 'view-content' | 'create' | 'edit' | 'delete' | 'view';

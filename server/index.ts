@@ -181,6 +181,110 @@ app.delete('/api/products/:id', authGuard, (req, res) => {
     res.json({ success: true });
 });
 
+// --- PASTAS --- //
+
+app.get('/api/pastas', (req, res) => {
+    try {
+        const pastas = db.prepare(`
+            SELECT p.*, COUNT(a.id) as total_arquivos 
+            FROM pastas p 
+            LEFT JOIN arquivos a ON a.pasta = p.slug 
+            GROUP BY p.id 
+            ORDER BY p.id ASC
+        `).all();
+        res.json(pastas);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar pastas' });
+    }
+});
+
+app.post('/api/pastas', authGuard, (req, res) => {
+    try {
+        const { nome } = req.body;
+        if (!nome || !nome.trim()) return res.status(400).json({ error: 'Nome da pasta é obrigatório' });
+
+        const cleanName = nome.trim();
+        const baseSlug = cleanName.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]/g, '_')
+            .replace(/_+/g, '_');
+        const slug = baseSlug + '_' + Date.now().toString(36);
+
+        const result = db.prepare('INSERT INTO pastas (nome, slug) VALUES (?, ?)').run(cleanName, slug);
+        const newPasta = db.prepare('SELECT p.*, 0 as total_arquivos FROM pastas p WHERE p.id = ?').get(result.lastInsertRowid);
+        res.json(newPasta);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao criar pasta' });
+    }
+});
+
+app.delete('/api/pastas/:id', authGuard, (req, res) => {
+    try {
+        const pasta = db.prepare('SELECT * FROM pastas WHERE id = ?').get(req.params.id) as any;
+        if (pasta) {
+            db.prepare('DELETE FROM arquivos WHERE pasta = ?').run(pasta.slug);
+            db.prepare('DELETE FROM pastas WHERE id = ?').run(req.params.id);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao excluir pasta' });
+    }
+});
+
+// --- ARQUIVOS (Solapas, Adesivos, Códigos de Barras, Tabelas Nutricionais) --- //
+
+app.get('/api/arquivos', (req, res) => {
+    const { pasta } = req.query;
+    try {
+        if (pasta) {
+            const items = db.prepare('SELECT * FROM arquivos WHERE pasta = ? ORDER BY id DESC').all(pasta);
+            return res.json(items);
+        }
+        const items = db.prepare('SELECT * FROM arquivos ORDER BY id DESC').all();
+        res.json(items);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar arquivos' });
+    }
+});
+
+app.post('/api/arquivos', authGuard, upload.single('file'), (req, res) => {
+    try {
+        const { pasta, subcategoria, nome, descricao, formato, tamanho } = req.body;
+        let arquivo_url = req.body.arquivo_url;
+
+        if (req.file) {
+            arquivo_url = '/uploads/' + req.file.filename;
+        }
+
+        if (!arquivo_url) {
+            return res.status(400).json({ error: 'Arquivo ou URL é obrigatório' });
+        }
+
+        const ext = req.file ? path.extname(req.file.originalname).replace('.', '').toUpperCase() : (formato || 'JPG');
+        const size = req.file ? `${(req.file.size / 1024).toFixed(0)} KB` : (tamanho || '350 KB');
+
+        const result = db.prepare(`
+            INSERT INTO arquivos (pasta, subcategoria, nome, descricao, arquivo_url, formato, tamanho)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(pasta, subcategoria || 'Geral', nome, descricao || '', arquivo_url, ext, size);
+
+        const newArquivo = db.prepare('SELECT * FROM arquivos WHERE id = ?').get(result.lastInsertRowid);
+        res.json(newArquivo);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erro ao salvar arquivo' });
+    }
+});
+
+app.delete('/api/arquivos/:id', authGuard, (req, res) => {
+    try {
+        db.prepare('DELETE FROM arquivos WHERE id = ?').run(req.params.id);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao excluir arquivo' });
+    }
+});
+
 const setupInitialData = () => {
     const hasCategories = db.prepare('SELECT count(*) as count FROM categories').get() as any;
     if (hasCategories.count === 0) {

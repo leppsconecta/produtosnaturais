@@ -3,7 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import {
     LogOut, LayoutDashboard, Package, MessageSquare, Users, FileText,
     CalendarDays, ClipboardList, ChevronLeft, ChevronRight, Moon, Sun,
-    Utensils, Megaphone, Terminal, Ticket, Star, UserCheck
+    Utensils, Megaphone, Terminal, Ticket, Star, UserCheck, FolderArchive
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { AppRoute } from '../../types';
@@ -48,6 +48,7 @@ export default function AdminLayout() {
     const links = [
         { label: 'Painel', path: AppRoute.DASHBOARD, icon: <LayoutDashboard className="w-5 h-5" /> },
         { label: 'Catálogo', path: AppRoute.PRODUCTS, icon: <Utensils className="w-5 h-5" /> },
+        { label: 'Arquivos', path: AppRoute.ARQUIVOS, icon: <FolderArchive className="w-5 h-5" /> },
         { label: 'Feedbacks', path: AppRoute.FEEDBACKS, icon: <MessageSquare className="w-5 h-5" /> },
         { label: 'Funcionários', path: AppRoute.FUNCIONARIOS, icon: <Users className="w-5 h-5" /> },
         { label: 'Currículos', path: AppRoute.CURRICULOS, icon: <FileText className="w-5 h-5" /> },

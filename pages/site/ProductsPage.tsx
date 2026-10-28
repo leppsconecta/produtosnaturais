@@ -44,12 +44,12 @@ export default function ProductsPage() {
           img: item.img || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
           weight: item.weight || 'Unid',
           category: item.category || 'sem-categoria',
-          favorito: false,
-          variacoes: [],
-          shopee_link: '',
-          mercadolivre_link: '',
-          amazon_link: '',
-          aliexpress_link: '',
+          favorito: Boolean(item.favorito),
+          variacoes: item.variacoes ? JSON.parse(item.variacoes) : [],
+          shopee_link: item.shopee_link || '',
+          mercadolivre_link: item.mercadolivre_link || '',
+          amazon_link: item.amazon_link || '',
+          aliexpress_link: item.aliexpress_link || '',
         }));
 
         setProducts(formattedProducts);

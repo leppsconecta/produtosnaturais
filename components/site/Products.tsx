@@ -115,7 +115,38 @@ export default function Products() {
                 <div className="p-4 md:p-6 flex flex-col flex-grow">
                   <div className="flex-grow">
                     <h3 className="text-base md:text-xl font-bold text-olive-900 mb-1 md:mb-2 line-clamp-2">{product.name}</h3>
-                    <p className="text-earth-800 text-xs md:text-sm mb-4 md:mb-6 line-clamp-3">{product.desc}</p>
+                    <p className="text-earth-800 text-xs md:text-sm mb-3 line-clamp-3">{product.desc}</p>
+                    
+                    {/* Marketplace Links */}
+                    {(product.shopee_link || product.mercadolivre_link) && (
+                      <div className="flex items-center gap-2 mb-3 bg-earth-50/60 p-2 rounded-xl border border-earth-100">
+                        <span className="text-[11px] font-bold text-olive-900/80">Onde comprar:</span>
+                        <div className="flex items-center gap-1.5">
+                          {product.shopee_link && (
+                            <a
+                              href={product.shopee_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Ver na Shopee"
+                              className="w-7 h-7 rounded-lg bg-white border border-black/10 hover:border-[#EE4D2D] hover:shadow-sm flex items-center justify-center p-1 transition-all hover:scale-110"
+                            >
+                              <img src="/shopee-logo.png" alt="Shopee" className="w-full h-full object-contain" />
+                            </a>
+                          )}
+                          {product.mercadolivre_link && (
+                            <a
+                              href={product.mercadolivre_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Ver no Mercado Livre"
+                              className="w-7 h-7 rounded-lg bg-white border border-black/10 hover:border-[#2D3277] hover:shadow-sm flex items-center justify-center p-1 transition-all hover:scale-110"
+                            >
+                              <img src="/mercadolivre-logo.png" alt="Mercado Livre" className="w-full h-full object-contain" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-auto space-y-3">
