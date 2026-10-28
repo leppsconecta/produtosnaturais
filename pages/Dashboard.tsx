@@ -5,8 +5,8 @@ import {
   ClipboardList, TrendingUp, TrendingDown, Clock,
   AlertTriangle, CheckCircle, Briefcase
 } from 'lucide-react';
-import { AppRoute } from '../../types';
-import { supabase } from '../../lib/supabase';
+import { AppRoute } from '../types';
+import { supabase } from '../lib/supabase';
 
 // ─── Donut chart ──────────────────────────────────────────────────────────────
 

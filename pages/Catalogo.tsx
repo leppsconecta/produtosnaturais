@@ -30,9 +30,9 @@ import {
   CheckCircle,
   Info
 } from 'lucide-react';
-import Modal from '../../components/UI/Modal';
-import { ModalType } from '../../types';
-import { supabase } from '../../lib/supabase';
+import Modal from '../components/UI/Modal';
+import { ModalType } from '../types';
+import { supabase } from '../lib/supabase';
 
 // Produto incluído em um combo
 interface ComboProduct {
@@ -97,8 +97,8 @@ const INITIAL_CATEGORIAS: CardapioCategoria[] = [
     id: 'cat-1',
     nome: 'Temperos',
     itens: [
-      { id: 'item-1', nome: 'Açafrão da Terra', descricao: 'Puro e vibrante, ideal para dar cor e sabor.', preco: '12,90', foto: 'https://images.unsplash.com/photo-1615486171448-4afd3710501f?w=400', ativo: true, visivel: true },
-      { id: 'item-2', nome: 'Chimichurri', descricao: 'O clássico argentino para o seu churrasco.', preco: '15,00', foto: 'https://images.unsplash.com/photo-1599909618035-773a65573489?w=400', ativo: true, visivel: true },
+      { id: 'item-1', nome: 'Açafrão da Terra', descricao: 'Puro e vibrante, ideal para dar cor e sabor.', preco: '12,90', foto: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?q=80&w=600&auto=format&fit=crop', ativo: true, visivel: true },
+      { id: 'item-2', nome: 'Chimichurri', descricao: 'O clássico argentino para o seu churrasco.', preco: '15,00', foto: 'https://images.unsplash.com/photo-1532336414038-cf19250c5757?q=80&w=600&auto=format&fit=crop', ativo: true, visivel: true },
       { id: 'item-3', nome: 'Páprica Defumada', descricao: 'Sabor intenso e aroma marcante.', preco: '14,00', foto: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400', ativo: true, visivel: true },
     ]
   },
@@ -114,8 +114,8 @@ const INITIAL_CATEGORIAS: CardapioCategoria[] = [
     id: 'cat-3',
     nome: 'Grãos e Oleaginosas',
     itens: [
-      { id: 'item-6', nome: 'Castanha do Pará', descricao: 'Rica em selênio e muito nutritiva.', preco: '25,00', foto: 'https://images.unsplash.com/photo-1599576822557-41a457199709?w=400', ativo: true },
-      { id: 'item-7', nome: 'Mix de Castanhas', descricao: 'A combinação perfeita para o seu lanche.', preco: '22,00', foto: 'https://images.unsplash.com/photo-1536588974558-812068804c86?w=400', ativo: true },
+      { id: 'item-6', nome: 'Castanha do Pará', descricao: 'Rica em selênio e muito nutritiva.', preco: '25,00', foto: 'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?q=80&w=600&auto=format&fit=crop', ativo: true },
+      { id: 'item-7', nome: 'Mix de Castanhas', descricao: 'A combinação perfeita para o seu lanche.', preco: '22,00', foto: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?q=80&w=600&auto=format&fit=crop', ativo: true },
     ]
   },
 ];

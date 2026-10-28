@@ -14,8 +14,8 @@ import {
   Layers,
   Sparkles
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { ArquivoItem, PastaItem } from '../../types';
+import { useAuth } from '../context/AuthContext';
+import { ArquivoItem, PastaItem } from '../types';
 
 export default function ArquivosPage() {
   const { token } = useAuth();

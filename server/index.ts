@@ -97,7 +97,7 @@ app.get('/api/categories', (req, res) => {
 app.post('/api/categories', authGuard, (req, res) => {
     const { id, name, icon } = req.body;
     try {
-        const result = db.prepare('INSERT INTO categories (id, name, icon) VALUES (?, ?, ?)').run(id, name, icon || 'Leaf');
+        db.prepare('INSERT INTO categories (id, name, icon) VALUES (?, ?, ?)').run(id, name, icon || 'Leaf');
         res.json({ id, name, icon });
     } catch (err) {
         res.status(400).json({ error: 'Erro ao criar categoria ou ID já existe' });
@@ -129,7 +129,7 @@ app.get('/api/products', (req, res) => {
 
 // Create product
 app.post('/api/products', authGuard, upload.single('image'), (req, res) => {
-    const { category, name, weight, desc, is_combo, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link } = req.body;
+    const { category, name, weight, desc, price, is_combo, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link } = req.body;
 
     let imgPath = req.body.img;
     if (req.file) {
@@ -141,9 +141,9 @@ app.post('/api/products', authGuard, upload.single('image'), (req, res) => {
     }
 
     const result = db.prepare(`
-    INSERT INTO products (category, name, weight, desc, img, hidden, favorito, is_combo, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link) 
-    VALUES (?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?, ?, ?)
-  `).run(category, name, weight, desc, imgPath, is_combo ? 1 : 0, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link);
+    INSERT INTO products (category, name, weight, desc, img, price, hidden, favorito, is_combo, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link) 
+    VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?, ?, ?)
+  `).run(category, name, weight, desc, imgPath, parseFloat(price) || 0, is_combo ? 1 : 0, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link);
 
     const newProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
     res.json(newProduct);
@@ -151,7 +151,7 @@ app.post('/api/products', authGuard, upload.single('image'), (req, res) => {
 
 // Update product
 app.put('/api/products/:id', authGuard, upload.single('image'), (req, res) => {
-    const { category, name, weight, desc, hidden, is_combo, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link } = req.body;
+    const { category, name, weight, desc, price, hidden, is_combo, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link } = req.body;
     const isHidden = hidden === 'true' || hidden === true ? 1 : 0;
 
     let imgPath = req.body.img;
@@ -161,10 +161,10 @@ app.put('/api/products/:id', authGuard, upload.single('image'), (req, res) => {
 
     db.prepare(`
     UPDATE products 
-    SET category = ?, name = ?, weight = ?, desc = ?, img = COALESCE(?, img), hidden = ?, 
+    SET category = ?, name = ?, weight = ?, desc = ?, img = COALESCE(?, img), price = COALESCE(?, price), hidden = ?, 
         is_combo = ?, variacoes = ?, shopee_link = ?, mercadolivre_link = ?, amazon_link = ?, aliexpress_link = ?
     WHERE id = ?
-  `).run(category, name, weight, desc, imgPath, isHidden, is_combo ? 1 : 0, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link, req.params.id);
+  `).run(category, name, weight, desc, imgPath, price != null ? parseFloat(price) : null, isHidden, is_combo ? 1 : 0, variacoes, shopee_link, mercadolivre_link, amazon_link, aliexpress_link, req.params.id);
 
     const updatedProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
     res.json(updatedProduct);
@@ -295,27 +295,30 @@ const setupInitialData = () => {
         insertCat.run('desidratados', 'Frutas Desidratadas', 'Apple');
         insertCat.run('mel', 'Mel e Derivados', 'Zap');
 
-        const insertProd = db.prepare('INSERT INTO products (category, name, weight, desc, img) VALUES (?, ?, ?, ?, ?)');
+        const insertProd = db.prepare('INSERT INTO products (category, name, weight, desc, img, price, favorito) VALUES (?, ?, ?, ?, ?, ?, ?)');
 
         // --- Temperos ---
-        insertProd.run('temperos', 'Açafrão da Terra', '150g', 'Puro e vibrante, ideal para dar cor e sabor.', 'https://images.unsplash.com/photo-1615486171448-4afd3710501f?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Chimichurri', '100g', 'O clássico argentino para o seu churrasco.', 'https://images.unsplash.com/photo-1599909618035-773a65573489?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Páprica Defumada', '100g', 'Sabor intenso e aroma defumado marcante.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('temperos', 'Orégano Chileno', '50g', 'Folhas selecionadas com aroma superior.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('temperos', 'Açafrão da Terra', '150g', 'Puro e vibrante, ideal para dar cor e sabor.', 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=600&auto=format&fit=crop&q=80', 12.90, 1);
+        insertProd.run('temperos', 'Chimichurri', '100g', 'O clássico argentino para o seu churrasco.', 'https://images.unsplash.com/photo-1532336414038-cf19250c5757?w=600&auto=format&fit=crop&q=80', 15.00, 1);
+        insertProd.run('temperos', 'Páprica Defumada', '100g', 'Sabor intenso e aroma defumado marcante.', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80', 14.00, 1);
+        insertProd.run('temperos', 'Orégano Chileno', '50g', 'Folhas selecionadas com aroma superior.', 'https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?w=600&auto=format&fit=crop&q=80', 9.90, 0);
 
         // --- Chás ---
-        insertProd.run('chas', 'Flor de Camomila', '50g', 'Calmante natural para noites tranquilas.', 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('chas', 'Hibisco em Flor', '100g', 'Sabor marcante e propriedades antioxidantes.', 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('chas', 'Canela em Casca', '50g', 'Aroma quente e adocicado para chás e doces.', 'https://images.unsplash.com/photo-1559144490-8328294fab4d?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('chas', 'Flor de Camomila', '50g', 'Calmante natural para noites tranquilas.', 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=600&auto=format&fit=crop&q=80', 8.50, 1);
+        insertProd.run('chas', 'Hibisco em Flor', '100g', 'Sabor marcante e propriedades antioxidantes.', 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80', 10.00, 1);
+        insertProd.run('chas', 'Canela em Casca', '50g', 'Aroma quente e adocicado para chás e doces.', 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=600&auto=format&fit=crop&q=80', 11.50, 0);
 
         // --- Grãos ---
-        insertProd.run('graos', 'Castanha do Pará', '150g', 'Rica em selênio e fundamental para a saúde.', 'https://images.unsplash.com/photo-1599576822557-41a457199709?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Amêndoa Torrada', '150g', 'Crocante e nutritiva, fonte de vitamina E.', 'https://images.unsplash.com/photo-1599576822557-41a457199709?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('graos', 'Mix de Castanhas Premium', '200g', 'A combinação perfeita de energia e sabor.', 'https://images.unsplash.com/photo-1536588974558-812068804c86?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('graos', 'Castanha do Pará', '150g', 'Rica em selênio e fundamental para a saúde.', 'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?w=600&auto=format&fit=crop&q=80', 25.00, 1);
+        insertProd.run('graos', 'Amêndoa Torrada', '150g', 'Crocante e nutritiva, fonte de vitamina E.', 'https://images.unsplash.com/photo-1543158181-e6f9f6712055?w=600&auto=format&fit=crop&q=80', 24.00, 0);
+        insertProd.run('graos', 'Mix de Castanhas Premium', '200g', 'A combinação perfeita de energia e sabor.', 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=600&auto=format&fit=crop&q=80', 22.00, 1);
 
         // --- Desidratados ---
-        insertProd.run('desidratados', 'Damasco Turco', '200g', 'Doce e macio, rico em fibras e betacaroteno.', 'https://images.unsplash.com/photo-1595436065982-f54f676046e7?q=80&w=600&auto=format&fit=crop');
-        insertProd.run('desidratados', 'Uva Passa Preta', '150g', 'Energia natural para seu dia a dia.', 'https://images.unsplash.com/photo-1595436065982-f54f676046e7?q=80&w=600&auto=format&fit=crop');
+        insertProd.run('desidratados', 'Damasco Turco', '200g', 'Doce e macio, rico em fibras e betacaroteno.', 'https://images.unsplash.com/photo-1596591606975-97ee5cef3a1e?w=600&auto=format&fit=crop&q=80', 26.90, 1);
+        insertProd.run('desidratados', 'Uva Passa Preta', '150g', 'Energia natural para seu dia a dia.', 'https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=600&auto=format&fit=crop&q=80', 14.50, 0);
+
+        // --- Mel ---
+        insertProd.run('mel', 'Mel Puro Silvestre', '300g', 'Mel 100% puro de florada silvestre, rico em nutrientes.', 'https://images.unsplash.com/photo-1587049352851-8d4e89133924?w=600&auto=format&fit=crop&q=80', 28.90, 1);
     }
 };
 setupInitialData();

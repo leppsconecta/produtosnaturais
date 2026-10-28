@@ -25,9 +25,9 @@ import {
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import Modal from '../../components/UI/Modal';
-import { Funcionario, TurnoConfig } from '../../types';
-import { DBService } from '../../lib/db';
+import Modal from '../components/UI/Modal';
+import { Funcionario, TurnoConfig } from '../types';
+import { DBService } from '../lib/db';
 
 const INITIAL_TURNOS = [
   { id: 't1', label: 'Manhã', inicio: '08:00', fim: '16:00', bgClass: 'bg-emerald-50 dark:bg-emerald-900/20', colorClass: 'text-emerald-600 dark:text-emerald-400', borderClass: 'border-emerald-200 dark:border-emerald-800' },

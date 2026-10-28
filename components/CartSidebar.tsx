@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Trash2, Send, ShoppingBag } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '../context/CartContext';
 
 export default function CartSidebar() {
   const { cart, removeFromCart, updateQuantity, clearCart, isSidebarOpen, toggleSidebar } = useCart();
@@ -143,7 +143,17 @@ export default function CartSidebar() {
                     </div>
                   ) : (
                     cart.map((item) => (
-                      <div key={`${item.id}-${item.variationName || ''}`} className="flex items-start gap-3 bg-offwhite p-3 rounded-lg border border-earth-100">
+                      <div key={`${item.id}-${item.variationName || ''}`} className="flex items-center gap-3 bg-offwhite p-3 rounded-lg border border-earth-100">
+                        {item.img && (
+                          <div className="w-12 h-12 rounded-lg overflow-hidden border border-earth-200 shrink-0 bg-white">
+                            <img
+                              src={item.img}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
+                            />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-olive-900 text-sm truncate">
                             {item.name}

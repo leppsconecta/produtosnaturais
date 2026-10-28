@@ -1,28 +1,28 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Home from './pages/site/Home';
-import ProductsPage from './pages/site/ProductsPage';
-import AboutPage from './pages/site/AboutPage';
-import TrabalheConoscoPage from './pages/site/TrabalheConosco';
-import PublicFormFuncionario from './pages/site/PublicFormFuncionario';
+import Home from './pages/Home';
+import ProductsPage from './pages/ProductsPage';
+import AboutPage from './pages/AboutPage';
+import TrabalheConoscoPage from './pages/TrabalheConosco';
+import PublicFormFuncionario from './pages/PublicFormFuncionario';
 
-import AdminLogin from './pages/admin/AdminLogin';
-import DashboardPage from './pages/admin/Dashboard';
-import FeedbacksPage from './pages/admin/Feedbacks';
-import FuncionariosPage from './pages/admin/Funcionarios';
-import CatalogoPage from './pages/admin/Catalogo';
-import EscalaPage from './pages/admin/Escala';
-import FichaTecnicaPage from './pages/admin/FichaTecnica';
-import CurriculosPage from './pages/admin/Curriculos';
-import ArquivosPage from './pages/admin/Arquivos';
+import AdminLogin from './pages/AdminLogin';
+import DashboardPage from './pages/Dashboard';
+import FeedbacksPage from './pages/Feedbacks';
+import FuncionariosPage from './pages/Funcionarios';
+import CatalogoPage from './pages/Catalogo';
+import EscalaPage from './pages/Escala';
+import FichaTecnicaPage from './pages/FichaTecnica';
+import CurriculosPage from './pages/Curriculos';
+import ArquivosPage from './pages/Arquivos';
 
-import AdminLayout from './components/admin/AdminLayout';
-import PublicLayout from './components/site/PublicLayout';
+import AdminLayout from './components/AdminLayout';
+import PublicLayout from './components/PublicLayout';
 
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import CartSidebar from './components/site/CartSidebar';
+import CartSidebar from './components/CartSidebar';
 import ScrollToTop from './components/UI/ScrollToTop';
 import SmoothScroll from './components/UI/SmoothScroll';
 
@@ -37,7 +37,7 @@ const queryClient = new QueryClient({
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/admin/login" />;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/admin/login" replace />;
 }
 
 export default function App() {
@@ -62,7 +62,7 @@ export default function App() {
               {/* Login Route */}
               <Route path="/admin/login" element={<AdminLogin />} />
 
-              {/* Admin Routes */}
+              {/* Admin Protected Routes */}
               <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
                 <Route index element={<DashboardPage />} />
                 <Route path="produtos" element={<CatalogoPage />} />
@@ -73,6 +73,8 @@ export default function App() {
                 <Route path="curriculos" element={<CurriculosPage />} />
                 <Route path="arquivos" element={<ArquivosPage />} />
               </Route>
+
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             <CartSidebar />
           </CartProvider>
@@ -81,4 +83,3 @@ export default function App() {
     </QueryClientProvider>
   );
 }
-

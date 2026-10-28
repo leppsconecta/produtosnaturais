@@ -6,6 +6,7 @@ export interface CartItem {
   category: string;
   weight: string;
   quantity: number;
+  img?: string;
   variationName?: string;
 }
 
@@ -47,7 +48,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (existingItem) {
         return prevCart.map((item) =>
           (item.id === product.id && item.variationName === variation?.nome)
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: item.quantity + quantity, img: product.img || item.img }
             : item
         );
       } else {
@@ -59,6 +60,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             category: product.category,
             weight: variation ? `${variation.qtd || ''} ${variation.unidade || ''}` : product.weight,
             quantity: quantity,
+            img: product.img,
             variationName: variation?.nome
           },
         ];

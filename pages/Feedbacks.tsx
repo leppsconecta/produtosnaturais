@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Trash2, StickyNote, RefreshCw } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Table from '../../components/UI/Table';
-import Modal from '../../components/UI/Modal';
-import { Feedback, FeedbackStatus, ModalType, AvaliacaoProduto } from '../../types';
-import { supabase } from '../../lib/supabase';
+import Table from '../components/UI/Table';
+import Modal from '../components/UI/Modal';
+import { Feedback, FeedbackStatus, ModalType, AvaliacaoProduto } from '../types';
+import { supabase } from '../lib/supabase';
 
 
 const FeedbacksPage: React.FC = () => {

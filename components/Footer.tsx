@@ -1,4 +1,6 @@
 import { Leaf, Instagram, Facebook } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { smoothScrollTo } from './UI/SmoothScroll';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -13,6 +15,15 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 );
 
 export default function Footer() {
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      smoothScrollTo(el, { offset: -70 });
+    } else {
+      smoothScrollTo(0, { duration: 0.8 });
+    }
+  };
+
   return (
     <footer className="bg-earth-800 text-earth-100 pt-16 pb-8 border-t border-earth-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,26 +31,26 @@ export default function Footer() {
 
           {/* Brand */}
           <div className="col-span-1 lg:col-span-1">
-            <a href="#inicio" className="flex items-center gap-2 group mb-6">
+            <Link to="/" onClick={() => smoothScrollTo(0, { duration: 0.8 })} className="flex items-center gap-2 group mb-6">
               <Leaf className="w-8 h-8 text-mustard-500" />
               <span className="text-2xl font-bold tracking-tight text-white">
                 Empórios MDA
               </span>
-            </a>
+            </Link>
             <p className="text-earth-200 text-sm leading-relaxed mb-6">
               Sabor, qualidade e natureza em cada tempero. Produtos naturais selecionados para transformar suas receitas.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center hover:bg-mustard-500 hover:text-olive-900 transition-colors">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center hover:bg-mustard-500 hover:text-olive-900 transition-colors">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center hover:bg-mustard-500 hover:text-olive-900 transition-colors">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center hover:bg-mustard-500 hover:text-olive-900 transition-colors">
                 <Facebook className="w-5 h-5" />
               </a>
               <a href="https://wa.me/5511940546968" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center hover:bg-mustard-500 hover:text-olive-900 transition-colors">
                 <WhatsAppIcon className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center hover:bg-mustard-500 hover:text-olive-900 transition-colors">
+              <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-earth-700 flex items-center justify-center hover:bg-mustard-500 hover:text-olive-900 transition-colors">
                 <TikTokIcon className="w-5 h-5" />
               </a>
             </div>
@@ -49,10 +60,10 @@ export default function Footer() {
           <div className="hidden md:block">
             <h4 className="font-bold text-white text-lg mb-6">Links Rápidos</h4>
             <ul className="space-y-3">
-              <li><a href="#inicio" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Início</a></li>
-              <li><a href="#produtos" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Nossos Produtos</a></li>
-              <li><a href="#quem-somos" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Quem Somos</a></li>
-              <li><a href="#atacado" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Atacado e Varejo</a></li>
+              <li><Link to="/" onClick={() => smoothScrollTo(0, { duration: 0.8 })} className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Início</Link></li>
+              <li><Link to="/produtos" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Nossos Produtos</Link></li>
+              <li><Link to="/quemsomos" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Quem Somos</Link></li>
+              <li><button type="button" onClick={() => scrollToSection('atacado')} className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Atacado e Varejo</button></li>
             </ul>
           </div>
 
@@ -60,9 +71,9 @@ export default function Footer() {
           <div className="hidden md:block">
             <h4 className="font-bold text-white text-lg mb-6">Categorias</h4>
             <ul className="space-y-3">
-              <li><a href="#produtos" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Temperos</a></li>
-              <li><a href="#produtos" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Chás e Ervas</a></li>
-              <li><a href="#produtos" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Grãos e Oleaginosas</a></li>
+              <li><Link to="/produtos" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Temperos</Link></li>
+              <li><Link to="/produtos" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Chás e Ervas</Link></li>
+              <li><Link to="/produtos" className="text-earth-200 hover:text-mustard-500 transition-colors text-sm">Grãos e Oleaginosas</Link></li>
             </ul>
           </div>
 

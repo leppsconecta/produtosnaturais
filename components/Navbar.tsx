@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Link, useLocation } from 'react-router-dom';
-import { useCart } from '../../context/CartContext';
-import { smoothScrollTo } from '../UI/SmoothScroll';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+import { smoothScrollTo } from './UI/SmoothScroll';
+
 export default function Navbar() {
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { cart, toggleSidebar } = useCart();
 
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -36,22 +37,34 @@ export default function Navbar() {
   }, [location.pathname]);
 
   const navLinks = [
-    { name: 'Início', href: '/#inicio' },
+    { name: 'Início', href: '/' },
     { name: 'Produtos', href: '/produtos' },
     { name: 'Quem Somos', href: '/quemsomos' },
     { name: 'Trabalhe Conosco', href: '/curriculo' },
-    { name: 'Contato', href: '/#contato' },
+    { name: 'Contato', href: '/', scrollId: 'contato' },
   ];
 
-  const handleLinkClick = (href: string) => {
+  const handleLinkClick = (e: React.MouseEvent, link: { name: string; href: string; scrollId?: string }) => {
     setIsMobileMenuOpen(false);
-    // If we are already on home page and clicking a hash link, smoothly scroll to it
-    if (location.pathname === '/' && href.startsWith('/#')) {
-      const id = href.replace('/#', '');
-      const element = document.getElementById(id);
-      if (element) {
-        smoothScrollTo(element, { offset: -70 });
+    if (link.scrollId) {
+      e.preventDefault();
+      if (location.pathname === '/') {
+        const element = document.getElementById(link.scrollId);
+        if (element) {
+          smoothScrollTo(element, { offset: -70 });
+        }
+      } else {
+        navigate('/');
+        setTimeout(() => {
+          const element = document.getElementById(link.scrollId!);
+          if (element) {
+            smoothScrollTo(element, { offset: -70 });
+          }
+        }, 150);
       }
+    } else if (link.href === '/' && location.pathname === '/') {
+      e.preventDefault();
+      smoothScrollTo(0, { duration: 0.8 });
     }
   };
 
@@ -79,7 +92,7 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 to={link.href}
-                onClick={() => handleLinkClick(link.href)}
+                onClick={(e) => handleLinkClick(e, link)}
                 className="text-sm font-medium transition-colors text-earth-100 hover:text-mustard-500"
               >
                 {link.name}
@@ -137,7 +150,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   to={link.href}
-                  onClick={() => handleLinkClick(link.href)}
+                  onClick={(e) => handleLinkClick(e, link)}
                   className="block px-3 py-3 text-base font-medium text-earth-800 hover:text-[#5A1788] hover:bg-earth-100 rounded-md transition-colors"
                 >
                   {link.name}

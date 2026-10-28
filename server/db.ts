@@ -23,6 +23,7 @@ db.exec(`
     weight TEXT NOT NULL,
     desc TEXT NOT NULL,
     img TEXT NOT NULL,
+    price REAL DEFAULT 0,
     hidden BOOLEAN DEFAULT 0,
     favorito BOOLEAN DEFAULT 0,
     is_combo BOOLEAN DEFAULT 0,
@@ -40,6 +41,7 @@ const tableInfo = db.prepare('PRAGMA table_info(products)').all() as { name: str
 const existingColumns = new Set(tableInfo.map(col => col.name));
 
 const requiredColumns: { name: string; type: string }[] = [
+  { name: 'price', type: 'REAL DEFAULT 0' },
   { name: 'favorito', type: 'BOOLEAN DEFAULT 0' },
   { name: 'is_combo', type: 'BOOLEAN DEFAULT 0' },
   { name: 'variacoes', type: 'TEXT' },
@@ -168,8 +170,37 @@ if (countArquivos === 0) {
   );
 }
 
-// Seed Shopee and Mercado Livre links on select products for public display
+// Ensure every product has a valid, working preview image and price
+const productImageUpdates: { name: string; img: string; price: number; favorito: number }[] = [
+  { name: 'Açafrão da Terra', img: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=600&auto=format&fit=crop&q=80', price: 12.90, favorito: 1 },
+  { name: 'Chimichurri', img: 'https://images.unsplash.com/photo-1532336414038-cf19250c5757?w=600&auto=format&fit=crop&q=80', price: 15.00, favorito: 1 },
+  { name: 'Páprica Defumada', img: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80', price: 14.00, favorito: 1 },
+  { name: 'Orégano Chileno', img: 'https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?w=600&auto=format&fit=crop&q=80', price: 9.90, favorito: 0 },
+  { name: 'Flor de Camomila', img: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=600&auto=format&fit=crop&q=80', price: 8.50, favorito: 1 },
+  { name: 'Hibisco em Flor', img: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&auto=format&fit=crop&q=80', price: 10.00, favorito: 1 },
+  { name: 'Canela em Casca', img: 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=600&auto=format&fit=crop&q=80', price: 11.50, favorito: 0 },
+  { name: 'Castanha do Pará', img: 'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?w=600&auto=format&fit=crop&q=80', price: 25.00, favorito: 1 },
+  { name: 'Amêndoa Torrada', img: 'https://images.unsplash.com/photo-1543158181-e6f9f6712055?w=600&auto=format&fit=crop&q=80', price: 24.00, favorito: 0 },
+  { name: 'Mix de Castanhas Premium', img: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=600&auto=format&fit=crop&q=80', price: 22.00, favorito: 1 },
+  { name: 'Damasco Turco', img: 'https://images.unsplash.com/photo-1596591606975-97ee5cef3a1e?w=600&auto=format&fit=crop&q=80', price: 26.90, favorito: 1 },
+  { name: 'Uva Passa Preta', img: 'https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=600&auto=format&fit=crop&q=80', price: 14.50, favorito: 0 },
+];
+
 try {
+  const updateStmt = db.prepare('UPDATE products SET img = ?, price = ?, favorito = ? WHERE name = ?');
+  for (const item of productImageUpdates) {
+    updateStmt.run(item.img, item.price, item.favorito, item.name);
+  }
+
+  // Ensure Mel Puro Silvestre exists in 'mel' category
+  const hasMel = db.prepare("SELECT COUNT(*) as count FROM products WHERE category = 'mel'").get() as { count: number };
+  if (hasMel.count === 0) {
+    db.prepare(`
+      INSERT INTO products (category, name, weight, desc, img, price, favorito, shopee_link)
+      VALUES ('mel', 'Mel Puro Silvestre', '300g', 'Mel 100% puro de florada silvestre, rico em nutrientes.', 'https://images.unsplash.com/photo-1587049352851-8d4e89133924?w=600&auto=format&fit=crop&q=80', 28.90, 1, 'https://shopee.com.br/mda-mel-puro-silvestre')
+    `).run();
+  }
+
   db.prepare(`
     UPDATE products SET 
       shopee_link = 'https://shopee.com.br/mda-mix-castanhas-premium',
@@ -196,7 +227,7 @@ try {
     WHERE name LIKE '%Damasco%'
   `).run();
 } catch (e) {
-  console.error('Error updating marketplace links:', e);
+  console.error('Error updating product images and links:', e);
 }
 
 export default db;

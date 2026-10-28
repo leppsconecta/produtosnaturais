@@ -24,10 +24,10 @@ import {
   Printer,
   Upload
 } from 'lucide-react';
-import Modal from '../../components/UI/Modal';
-import Table, { Column } from '../../components/UI/Table';
-import { MateriaPrima, PratoFicha, CategoriaPrato, IngredientePrato } from '../../types';
-import * as fichaTecnicaService from '../../services/fichaTecnicaService';
+import Modal from '../components/UI/Modal';
+import Table, { Column } from '../components/UI/Table';
+import { MateriaPrima, PratoFicha, CategoriaPrato, IngredientePrato } from '../types';
+import * as fichaTecnicaService from '../services/fichaTecnicaService';
 
 // Utility class to hide spin buttons
 const NO_SPINNER_CLASS = "[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]";
