@@ -2,11 +2,19 @@ import { useEffect } from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 
-declare global {
-  interface Window {
-    lenis?: Lenis;
+let lenisInstance: Lenis | null = null;
+
+export const getLenis = (): Lenis | null => lenisInstance;
+
+export const smoothScrollTo = (target: any, options?: any) => {
+  if (lenisInstance) {
+    lenisInstance.scrollTo(target, options);
+  } else if (typeof target === 'number') {
+    window.scrollTo({ top: target, behavior: options?.immediate ? 'auto' : 'smooth' });
+  } else if (target instanceof HTMLElement) {
+    target.scrollIntoView({ behavior: 'smooth' });
   }
-}
+};
 
 export default function SmoothScroll() {
   useEffect(() => {
@@ -22,7 +30,7 @@ export default function SmoothScroll() {
       infinite: false,
     });
 
-    window.lenis = lenis;
+    lenisInstance = lenis;
 
     let rafId: number;
     function raf(time: number) {
@@ -35,7 +43,7 @@ export default function SmoothScroll() {
     return () => {
       cancelAnimationFrame(rafId);
       lenis.destroy();
-      delete window.lenis;
+      lenisInstance = null;
     };
   }, []);
 

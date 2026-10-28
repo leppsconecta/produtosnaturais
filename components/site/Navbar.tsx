@@ -3,6 +3,7 @@ import { Menu, X, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { smoothScrollTo } from '../UI/SmoothScroll';
 export default function Navbar() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -49,11 +50,7 @@ export default function Navbar() {
       const id = href.replace('/#', '');
       const element = document.getElementById(id);
       if (element) {
-        if (window.lenis) {
-          window.lenis.scrollTo(element, { offset: -70 });
-        } else {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
+        smoothScrollTo(element, { offset: -70 });
       }
     }
   };

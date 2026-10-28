@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, ShoppingCart, Search, ChevronLeft, ChevronRight, Plus, Minus, X, Trash2, ThumbsUp, MessageCircle, ThumbsDown, Send } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { supabase } from '../../lib/supabase';
+import { smoothScrollTo } from '../../components/UI/SmoothScroll';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -93,11 +94,7 @@ export default function ProductsPage() {
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
-      if (window.lenis) {
-        window.lenis.scrollTo(0, { duration: 0.8 });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      smoothScrollTo(0, { duration: 0.8 });
     }
   };
 
@@ -560,11 +557,11 @@ export default function ProductsPage() {
         )}
       </AnimatePresence>
 
-      {/* Search and Filter - Fixed Sub-Header */}
-      <div className="fixed top-[64px] left-0 right-0 z-40 bg-offwhite border-b border-earth-100 shadow-sm transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row gap-4 md:gap-6 items-center justify-between">
+      {/* Search and Filter - Fixed Sub-Header Seamlessly Attached to Header */}
+      <div className="fixed top-16 left-0 right-0 z-50 bg-[#faf9f6] border-b border-earth-200/80 shadow-sm before:content-[''] before:absolute before:-top-4 before:left-0 before:right-0 before:h-4 before:bg-[#faf9f6]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row gap-3 md:gap-6 items-center justify-between">
           {/* Categories - Horizontal Scroll on Mobile */}
-          <div className="flex flex-nowrap justify-start items-center gap-2 overflow-x-auto pb-2 -mx-2 px-2 max-w-full scrollbar-hide no-scrollbar flex-grow">
+          <div className="flex flex-nowrap justify-start items-center gap-2 overflow-x-auto py-1 max-w-full scrollbar-hide no-scrollbar flex-grow">
             <button
               onClick={() => { setActiveCategory('todos'); setCurrentPage(1); }}
               className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${activeCategory === 'todos'
@@ -604,7 +601,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <main className="pt-[210px] md:pt-[150px] pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className="pt-[195px] md:pt-[145px] pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
 
         {/* Product Grid */}
         {currentProducts.length > 0 ? (

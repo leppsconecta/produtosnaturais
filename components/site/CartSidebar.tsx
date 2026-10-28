@@ -132,7 +132,7 @@ export default function CartSidebar() {
             ) : (
               <>
                 {/* Cart Items */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                <div className="flex-1 overflow-y-auto p-4 space-y-3" data-lenis-prevent>
                   {cart.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-earth-400 space-y-4">
                       <ShoppingBag className="w-16 h-16 opacity-20" />
