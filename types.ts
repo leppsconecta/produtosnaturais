@@ -11,9 +11,17 @@ export enum AppRoute {
   ARQUIVOS = '/admin/arquivos',
 }
 
+export interface PastaItem {
+  id: number;
+  nome: string;
+  slug: string;
+  total_arquivos?: number;
+  created_at?: string;
+}
+
 export interface ArquivoItem {
   id: number;
-  pasta: 'solapa_adesivos' | 'cod_barras_tabelas';
+  pasta: string;
   subcategoria: string;
   nome: string;
   descricao?: string;
